@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { WDT_ENDPOINTS, WdtApiError, WdtClient, aliasForMethod } from "../src";
+import { WDT_ENDPOINTS, WdtApiError, WdtClient, WdtHttpError, WdtResponseParseError, aliasForMethod } from "../src";
 
 describe("WdtClient", () => {
   test("prepares signed requests with camelCase input converted to snake_case", () => {
@@ -141,6 +141,44 @@ describe("WdtClient", () => {
     });
 
     await expect(client.call("setting.Warehouse.queryWarehouse", {})).rejects.toBeInstanceOf(WdtApiError);
+  });
+
+  test("throws WdtHttpError with response body for non-2xx HTML responses", async () => {
+    const client = new WdtClient({
+      sid: "seller-sid",
+      appKey: "app-key",
+      appSecret: "secret:salt",
+      fetch: async () =>
+        new Response("<html><body>Bad gateway</body></html>", {
+          status: 502,
+          statusText: "Bad Gateway",
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+    });
+
+    await expect(client.call("setting.strategy.VirtualWarehouse.stockSearch", {})).rejects.toMatchObject({
+      name: "WdtHttpError",
+      status: 502,
+      contentType: "text/html; charset=utf-8",
+      body: "<html><body>Bad gateway</body></html>",
+    });
+  });
+
+  test("throws WdtResponseParseError for 2xx non-JSON responses", async () => {
+    const client = new WdtClient({
+      sid: "seller-sid",
+      appKey: "app-key",
+      appSecret: "secret:salt",
+      fetch: async () =>
+        new Response("<html><body>Login page</body></html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        }),
+    });
+
+    await expect(client.call("setting.strategy.VirtualWarehouse.stockSearch", {})).rejects.toBeInstanceOf(
+      WdtResponseParseError,
+    );
   });
 });
 

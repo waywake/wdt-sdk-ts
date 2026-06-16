@@ -1,7 +1,7 @@
 import { createRequestBody } from "./body";
 import { keysToCamelCase } from "./case";
 import { WDT_ENDPOINTS, type WdtEndpointMap, type WdtMethod } from "./endpoints";
-import { WdtApiError } from "./error";
+import { WdtApiError, WdtHttpError, WdtResponseParseError } from "./error";
 import { signWdtRequest, type WdtSignedRequest } from "./sign";
 import type {
   JsonValue,
@@ -78,12 +78,20 @@ export class WdtClient {
     const prepared = this.prepareRequest(method, request, options);
     const response = await this.fetchImpl(prepared.url, prepared.init);
     const text = await response.text();
-    const parsed = parseJsonResponse(text);
-    const camelResponse = keysToCamelCase(parsed) as WdtApiResponse;
+    const responseContext = {
+      url: prepared.url,
+      status: response.status,
+      statusText: response.statusText,
+      contentType: response.headers.get("content-type"),
+      body: text,
+    };
 
     if (!response.ok) {
-      throw new Error(`WDT HTTP request failed with ${response.status} ${response.statusText}: ${text}`);
+      throw new WdtHttpError(responseContext);
     }
+
+    const parsed = parseJsonResponse(text, responseContext);
+    const camelResponse = keysToCamelCase(parsed) as WdtApiResponse;
 
     const shouldThrow = options.throwOnApiError ?? this.defaultThrowOnApiError;
     if (shouldThrow && typeof camelResponse.status === "number" && camelResponse.status !== 0) {
@@ -157,11 +165,24 @@ export function aliasForMethod(method: string): string {
     .join("");
 }
 
-function parseJsonResponse(text: string): JsonValue {
+function parseJsonResponse(
+  text: string,
+  context: {
+    url: string;
+    status: number;
+    statusText: string;
+    contentType: string | null;
+    body: string;
+  },
+): JsonValue {
   if (text.trim().length === 0) {
     return { status: 0 };
   }
 
-  const parsed = JSON.parse(text) as JsonValue;
-  return parsed;
+  try {
+    const parsed = JSON.parse(text) as JsonValue;
+    return parsed;
+  } catch (error) {
+    throw new WdtResponseParseError({ ...context, cause: error });
+  }
 }

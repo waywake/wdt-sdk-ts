@@ -10,7 +10,7 @@ export {
   type WdtMethodAlias,
 } from "./client";
 export { WDT_ENDPOINTS, type WdtEndpointMap, type WdtMethod } from "./endpoints";
-export { WdtApiError } from "./error";
+export { WdtApiError, WdtHttpError, WdtResponseParseError, type WdtResponseErrorOptions } from "./error";
 export {
   WDT_EPOCH_SECONDS,
   getWdtTimestamp,
