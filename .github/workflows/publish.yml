@@ -1,0 +1,136 @@
+name: Publish npm package
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    environment: npm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Setup Node for npm publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Validate release tag
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+          const ref = process.env.GITHUB_REF ?? "";
+          const expectedRef = `refs/tags/v${pkg.version}`;
+
+          if (!/^refs\/tags\/v\d+\.\d+\.\d+([-.+][0-9A-Za-z.-]+)?$/.test(ref)) {
+            throw new Error(`Publish must run from a version tag like v${pkg.version}. Current ref: ${ref}`);
+          }
+
+          if (ref !== expectedRef) {
+            throw new Error(`Tag ${ref} does not match package.json version ${pkg.version}. Expected ${expectedRef}.`);
+          }
+          NODE
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun test
+
+      - name: Build
+        run: bun run build
+
+      - name: Ensure npm version is not already published
+        run: |
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version --registry "https://registry.npmjs.org" >/dev/null 2>&1; then
+            echo "${PACKAGE_NAME}@${PACKAGE_VERSION} is already published."
+            exit 1
+          fi
+
+      - name: Pack package
+        run: |
+          npm pack --json > npm-pack.json
+          node -e "const fs = require('node:fs'); const pack = JSON.parse(fs.readFileSync('npm-pack.json', 'utf8'))[0]; fs.writeFileSync('npm-tarball.txt', pack.filename); console.log(pack.filename);"
+
+      - name: Verify package contents
+        run: |
+          TARBALL="$(cat npm-tarball.txt)"
+          tar -tf "$TARBALL" | sort
+
+          for required_file in \
+            package/package.json \
+            package/README.md \
+            package/dist/index.js \
+            package/dist/index.d.ts \
+            package/dist/endpoints.d.ts
+          do
+            tar -tf "$TARBALL" | grep -qx "$required_file"
+          done
+
+          if tar -tf "$TARBALL" | grep -Eq '(^package/src/|^package/test/|^package/scripts/)'; then
+            echo "Source, test, or script files were unexpectedly included in the npm package."
+            exit 1
+          fi
+
+      - name: Smoke test packed package
+        run: |
+          TARBALL="$GITHUB_WORKSPACE/$(cat npm-tarball.txt)"
+          SMOKE_DIR="$(mktemp -d)"
+          cd "$SMOKE_DIR"
+          npm init -y >/dev/null
+          npm install "$TARBALL" >/dev/null
+          node --input-type=module <<'NODE'
+          import { WDT_ENDPOINTS, WdtClient } from "@waywake/wdt-sdk";
+
+          if (Object.keys(WDT_ENDPOINTS).length !== 184) {
+            throw new Error("Unexpected endpoint count in packed package.");
+          }
+
+          const client = new WdtClient({
+            sid: "seller-sid",
+            appKey: "app-key",
+            appSecret: "secret:salt",
+          });
+
+          const prepared = client.prepareRequest("setting.Warehouse.queryWarehouse", {
+            startTime: "2020-01-01 00:00:00",
+            endTime: "2020-01-20 00:00:00",
+          });
+
+          if (!String(prepared.init.body).includes("start_time")) {
+            throw new Error("Packed package did not convert request body keys.");
+          }
+          NODE
+
+      - name: Publish to npm
+        run: npm publish "$(cat npm-tarball.txt)" --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
