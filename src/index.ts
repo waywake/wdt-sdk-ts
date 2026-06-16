@@ -5,6 +5,7 @@ export {
   aliasForMethod,
   createWdtClient,
   type PreparedWdtRequest,
+  type WdtApiHelper,
   type WdtApiHelpers,
   type WdtMethodAlias,
 } from "./client";
@@ -20,6 +21,7 @@ export {
   type WdtSignInput,
   type WdtSignedRequest,
 } from "./sign";
+export type * from "./endpoint-types";
 export type {
   DeepCamel,
   DeepSnake,
@@ -36,6 +38,7 @@ export type {
   WdtFetch,
   WdtPagerOptions,
   WdtRequestBody,
+  WdtRequestObject,
   WdtResponseData,
   WdtSuccessResponse,
 } from "./types";

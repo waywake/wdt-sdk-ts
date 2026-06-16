@@ -11,7 +11,6 @@ import type {
   WdtEndpointMeta,
   WdtFetch,
   WdtRequestBody,
-  WdtResponseData,
 } from "./types";
 
 const PRODUCTION_BASE_URL = "https://wdt.wangdian.cn/openapi";
@@ -25,11 +24,13 @@ export type WdtMethodAlias<S extends string> = S extends `${infer Head}.${infer 
   ? `${Uncapitalize<Head>}${PascalDotted<Tail>}`
   : Uncapitalize<S>;
 
+export interface WdtApiHelper<M extends WdtMethod> {
+  (request?: WdtEndpointMap[M]["request"], options?: WdtCallOptions): Promise<WdtEndpointMap[M]["response"]>;
+  <TData extends object>(request?: WdtEndpointMap[M]["request"], options?: WdtCallOptions): Promise<WdtApiResponse<TData>>;
+}
+
 export type WdtApiHelpers = {
-  [M in WdtMethod as WdtMethodAlias<M>]: <TData extends WdtResponseData = WdtResponseData>(
-    request?: WdtEndpointMap[M]["request"],
-    options?: WdtCallOptions,
-  ) => Promise<WdtApiResponse<TData>>;
+  [M in WdtMethod as WdtMethodAlias<M>]: WdtApiHelper<M>;
 };
 
 export interface PreparedWdtRequest {
@@ -62,16 +63,17 @@ export class WdtClient {
     this.api = createApiHelpers(this);
   }
 
-  call<TData extends WdtResponseData = WdtResponseData, M extends WdtMethod = WdtMethod>(
+  call<M extends WdtMethod>(
     method: M,
     request?: WdtEndpointMap[M]["request"],
     options?: WdtCallOptions,
-  ): Promise<WdtApiResponse<TData>>;
-  call<TData extends WdtResponseData = WdtResponseData>(
+  ): Promise<WdtEndpointMap[M]["response"]>;
+  call<TData extends object>(
     method: string,
     request?: WdtRequestBody,
     options?: WdtCallOptions,
   ): Promise<WdtApiResponse<TData>>;
+  call(method: string, request?: WdtRequestBody, options?: WdtCallOptions): Promise<WdtApiResponse>;
   async call(method: string, request?: WdtRequestBody, options: WdtCallOptions = {}): Promise<WdtApiResponse> {
     const prepared = this.prepareRequest(method, request, options);
     const response = await this.fetchImpl(prepared.url, prepared.init);

@@ -43,21 +43,21 @@ await client.api.settingWarehouseQueryWarehouse(
 );
 ```
 
-By default, response `data` is typed as `Record<string, unknown>` so TypeScript keeps the SDK response type readable. For strongly typed business data, pass a data type parameter:
+Generated endpoint helpers return endpoint-specific request and response types:
 
 ```ts
-interface VirtualWarehouseQueryData {
-  totalCount: number;
-  details: Array<{ virtualWarehouseNo: string }>;
-}
+import type { WdtSettingStrategyVirtualWarehouseQueryData } from "@waywake/wdt-sdk";
 
-const response = await client.api.settingStrategyVirtualWarehouseQuery<VirtualWarehouseQueryData>(
+const response = await client.api.settingStrategyVirtualWarehouseQuery(
   {},
   { pager: { pageNo: 0, pageSize: 100 } },
 );
 
-console.log(response.data?.details[0]?.virtualWarehouseNo);
+const data: WdtSettingStrategyVirtualWarehouseQueryData | undefined = response.data;
+console.log(data?.detailList[0]?.sysWarehouseList?.[0]?.warehouseNo);
 ```
+
+You can still override the response `data` type with a generic when your project keeps a narrower domain model.
 
 Request and response objects use `camelCase` in TypeScript. The SDK converts request keys to `snake_case` before sending and converts response keys back to `camelCase`.
 

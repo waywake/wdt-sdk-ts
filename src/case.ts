@@ -1,4 +1,4 @@
-import type { DeepCamel, DeepSnake, JsonArray, JsonObject, JsonValue } from "./types";
+import type { DeepCamel, DeepSnake } from "./types";
 
 const plainObjectTag = "[object Object]";
 
@@ -13,21 +13,21 @@ export function toCamelCase(key: string): string {
   return key.replace(/_+([a-zA-Z0-9])/g, (_, char: string) => char.toUpperCase());
 }
 
-export function isPlainObject(value: unknown): value is JsonObject {
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.prototype.toString.call(value) === plainObjectTag;
 }
 
-export function keysToSnakeCase<T extends JsonValue | undefined>(value: T): DeepSnake<T> {
+export function keysToSnakeCase<T>(value: T): DeepSnake<T> {
   return convertKeys(value, toSnakeCase) as DeepSnake<T>;
 }
 
-export function keysToCamelCase<T extends JsonValue | undefined>(value: T): DeepCamel<T> {
+export function keysToCamelCase<T>(value: T): DeepCamel<T> {
   return convertKeys(value, toCamelCase) as DeepCamel<T>;
 }
 
-function convertKeys(value: JsonValue | undefined, convertKey: (key: string) => string): JsonValue | undefined {
+function convertKeys(value: unknown, convertKey: (key: string) => string): unknown {
   if (Array.isArray(value)) {
-    return value.map((item) => convertKeys(item, convertKey)) as JsonArray;
+    return value.map((item) => convertKeys(item, convertKey));
   }
 
   if (!isPlainObject(value)) {
@@ -38,5 +38,5 @@ function convertKeys(value: JsonValue | undefined, convertKey: (key: string) => 
     Object.entries(value)
       .filter(([, entryValue]) => entryValue !== undefined)
       .map(([key, entryValue]) => [convertKey(key), convertKeys(entryValue, convertKey)]),
-  ) as JsonObject;
+  );
 }

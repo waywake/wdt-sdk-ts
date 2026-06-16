@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { WDT_ENDPOINTS, WdtApiError, WdtClient, aliasForMethod, type WdtApiResponse, type WdtResponseData } from "../src";
+import { WDT_ENDPOINTS, WdtApiError, WdtClient, aliasForMethod } from "../src";
 
 describe("WdtClient", () => {
   test("prepares signed requests with camelCase input converted to snake_case", () => {
@@ -55,13 +55,10 @@ describe("WdtClient", () => {
     );
 
     expect(requests).toHaveLength(1);
-    expect(response).toEqual({
-      status: 0,
-      data: {
-        totalCount: 1,
-        details: [{ warehouseNo: "WH001", isDisabled: false }],
-      },
-    });
+    expect(response.status).toBe(0);
+    expect(response.data?.totalCount).toBe(1);
+    expect(response.data?.details[0]?.warehouseNo).toBe("WH001");
+    expect(response.data?.details[0]?.isDisabled).toBe(false);
   });
 
   test("provides api helper aliases for generated endpoints", async () => {
@@ -83,8 +80,8 @@ describe("WdtClient", () => {
     expect(aliasForMethod("wms.stockout.Sales.queryWithDetail")).toBe("wmsStockoutSalesQueryWithDetail");
   });
 
-  test("keeps generated api response types readable and supports typed data", async () => {
-    interface VirtualWarehouseQueryData extends WdtResponseData {
+  test("returns generated endpoint response types and supports typed data overrides", async () => {
+    interface VirtualWarehouseQueryData {
       totalCount: number;
       details: Array<{ virtualWarehouseNo: string }>;
     }
@@ -100,27 +97,38 @@ describe("WdtClient", () => {
             status: 0,
             data: {
               total_count: 1,
-              details: [{ virtual_warehouse_no: "VW001" }],
+              detail_list: [
+                {
+                  virtual_warehouse_no: "VW001",
+                  virtual_warehouse_id: 10,
+                  name: "Virtual Warehouse",
+                  sys_warehouse_list: [{ warehouse_no: "WH001", warehouse_name: "Warehouse", warehouse_id: 20 }],
+                  shop_list: [{ shop_no: "SHOP001", shop_name: "Shop", shop_id: 30 }],
+                },
+              ],
             },
           }),
         ),
     });
 
-    const defaultResponse: WdtApiResponse = await client.api.settingStrategyVirtualWarehouseQuery(
+    const defaultResponse = await client.api.settingStrategyVirtualWarehouseQuery(
       {},
       { pager: { pageNo: 0, pageSize: 100 } },
     );
+    const generatedWarehouseNo: string | undefined =
+      defaultResponse.data?.detailList[0]?.sysWarehouseList?.[0]?.warehouseNo;
+
     expect(defaultResponse.status).toBe(0);
+    expect(defaultResponse.data?.totalCount).toBe(1);
+    expect(generatedWarehouseNo).toBe("WH001");
 
     const typedResponse = await client.api.settingStrategyVirtualWarehouseQuery<VirtualWarehouseQueryData>(
       {},
       { pager: { pageNo: 0, pageSize: 100 } },
     );
     const totalCount: number | undefined = typedResponse.data?.totalCount;
-    const firstWarehouseNo: string | undefined = typedResponse.data?.details[0]?.virtualWarehouseNo;
 
     expect(totalCount).toBe(1);
-    expect(firstWarehouseNo).toBe("VW001");
   });
 
   test("throws WdtApiError when throwOnApiError is enabled", async () => {
