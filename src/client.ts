@@ -113,7 +113,7 @@ export class WdtClient {
       timestamp: options.timestamp ?? this.timestampProvider?.(),
       pageNo: options.pager?.pageNo,
       pageSize: options.pager?.pageSize,
-      calcTotal: options.pager?.calcTotal,
+      calcTotal: options.pager ? (options.pager.calcTotal ?? false) : undefined,
     });
     const url = new URL(this.baseUrl);
 

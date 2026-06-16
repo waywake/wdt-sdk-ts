@@ -27,6 +27,27 @@ describe("WdtClient", () => {
     expect(url.searchParams.get("sign")).toMatch(/^[a-f0-9]{32}$/);
   });
 
+  test("defaults calc_total to 0 when pager is provided", () => {
+    const client = new WdtClient({
+      sid: "seller-sid",
+      appKey: "app-key",
+      appSecret: "secret:salt",
+      timestampProvider: () => 448900499,
+    });
+
+    const prepared = client.prepareRequest(
+      "setting.strategy.VirtualWarehouse.stockSearch",
+      { virtualWarehouseNo: "003", specNos: "6973763348013" },
+      { pager: { pageNo: 0, pageSize: 100 } },
+    );
+    const url = new URL(prepared.url);
+
+    expect(url.searchParams.get("page_no")).toBe("0");
+    expect(url.searchParams.get("page_size")).toBe("100");
+    expect(url.searchParams.get("calc_total")).toBe("0");
+    expect(prepared.signed.signString).toContain("calc_total0");
+  });
+
   test("calls fetch and converts response keys to camelCase", async () => {
     const requests: Array<{ url: string; init?: RequestInit }> = [];
     const client = new WdtClient({
