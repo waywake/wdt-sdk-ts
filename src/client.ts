@@ -4,7 +4,6 @@ import { WDT_ENDPOINTS, type WdtEndpointMap, type WdtMethod } from "./endpoints"
 import { WdtApiError } from "./error";
 import { signWdtRequest, type WdtSignedRequest } from "./sign";
 import type {
-  DeepCamel,
   JsonValue,
   WdtApiResponse,
   WdtCallOptions,
@@ -12,6 +11,7 @@ import type {
   WdtEndpointMeta,
   WdtFetch,
   WdtRequestBody,
+  WdtResponseData,
 } from "./types";
 
 const PRODUCTION_BASE_URL = "https://wdt.wangdian.cn/openapi";
@@ -26,10 +26,10 @@ export type WdtMethodAlias<S extends string> = S extends `${infer Head}.${infer 
   : Uncapitalize<S>;
 
 export type WdtApiHelpers = {
-  [M in WdtMethod as WdtMethodAlias<M>]: (
+  [M in WdtMethod as WdtMethodAlias<M>]: <TData extends WdtResponseData = WdtResponseData>(
     request?: WdtEndpointMap[M]["request"],
     options?: WdtCallOptions,
-  ) => Promise<DeepCamel<WdtEndpointMap[M]["response"]>>;
+  ) => Promise<WdtApiResponse<TData>>;
 };
 
 export interface PreparedWdtRequest {
@@ -62,12 +62,16 @@ export class WdtClient {
     this.api = createApiHelpers(this);
   }
 
-  call<M extends WdtMethod>(
+  call<TData extends WdtResponseData = WdtResponseData, M extends WdtMethod = WdtMethod>(
     method: M,
     request?: WdtEndpointMap[M]["request"],
     options?: WdtCallOptions,
-  ): Promise<DeepCamel<WdtEndpointMap[M]["response"]>>;
-  call(method: string, request?: WdtRequestBody, options?: WdtCallOptions): Promise<WdtApiResponse>;
+  ): Promise<WdtApiResponse<TData>>;
+  call<TData extends WdtResponseData = WdtResponseData>(
+    method: string,
+    request?: WdtRequestBody,
+    options?: WdtCallOptions,
+  ): Promise<WdtApiResponse<TData>>;
   async call(method: string, request?: WdtRequestBody, options: WdtCallOptions = {}): Promise<WdtApiResponse> {
     const prepared = this.prepareRequest(method, request, options);
     const response = await this.fetchImpl(prepared.url, prepared.init);

@@ -8,6 +8,7 @@ export interface JsonObject {
 export type JsonArray = JsonValue[];
 
 export type WdtRequestBody = JsonObject | JsonArray | undefined;
+export type WdtResponseData = Record<string, unknown>;
 export type WdtFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 export interface WdtClientOptions {
@@ -45,22 +46,25 @@ export interface WdtEndpointMeta {
   docUrl: string;
 }
 
-export interface WdtSuccessResponse<TData extends JsonValue = JsonObject> {
+export interface WdtSuccessResponse<TData extends WdtResponseData = WdtResponseData> {
   status: 0;
   message?: string;
   data?: TData;
-  [key: string]: JsonValue | undefined;
+  [key: string]: unknown;
 }
 
 export interface WdtErrorResponse {
   status: number;
   message?: string;
-  [key: string]: JsonValue | undefined;
+  [key: string]: unknown;
 }
 
-export type WdtApiResponse<TData extends JsonValue = JsonObject> =
-  | WdtSuccessResponse<TData>
-  | WdtErrorResponse;
+export interface WdtApiResponse<TData extends WdtResponseData = WdtResponseData> {
+  status: number;
+  message?: string;
+  data?: TData;
+  [key: string]: unknown;
+}
 
 export type WdtEndpointContract = {
   request: WdtRequestBody;

@@ -36,5 +36,6 @@ export type {
   WdtFetch,
   WdtPagerOptions,
   WdtRequestBody,
+  WdtResponseData,
   WdtSuccessResponse,
 } from "./types";

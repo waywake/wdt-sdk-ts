@@ -43,6 +43,22 @@ await client.api.settingWarehouseQueryWarehouse(
 );
 ```
 
+By default, response `data` is typed as `Record<string, unknown>` so TypeScript keeps the SDK response type readable. For strongly typed business data, pass a data type parameter:
+
+```ts
+interface VirtualWarehouseQueryData {
+  totalCount: number;
+  details: Array<{ virtualWarehouseNo: string }>;
+}
+
+const response = await client.api.settingStrategyVirtualWarehouseQuery<VirtualWarehouseQueryData>(
+  {},
+  { pager: { pageNo: 0, pageSize: 100 } },
+);
+
+console.log(response.data?.details[0]?.virtualWarehouseNo);
+```
+
 Request and response objects use `camelCase` in TypeScript. The SDK converts request keys to `snake_case` before sending and converts response keys back to `camelCase`.
 
 For positional body APIs, pass an array:

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { WDT_ENDPOINTS, WdtApiError, WdtClient, aliasForMethod } from "../src";
+import { WDT_ENDPOINTS, WdtApiError, WdtClient, aliasForMethod, type WdtApiResponse, type WdtResponseData } from "../src";
 
 describe("WdtClient", () => {
   test("prepares signed requests with camelCase input converted to snake_case", () => {
@@ -81,6 +81,46 @@ describe("WdtClient", () => {
     expect(response.status).toBe(0);
     expect((response.data as { totalCount?: number } | undefined)?.totalCount).toBe(0);
     expect(aliasForMethod("wms.stockout.Sales.queryWithDetail")).toBe("wmsStockoutSalesQueryWithDetail");
+  });
+
+  test("keeps generated api response types readable and supports typed data", async () => {
+    interface VirtualWarehouseQueryData extends WdtResponseData {
+      totalCount: number;
+      details: Array<{ virtualWarehouseNo: string }>;
+    }
+
+    const client = new WdtClient({
+      sid: "seller-sid",
+      appKey: "app-key",
+      appSecret: "secret:salt",
+      timestampProvider: () => 448900499,
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            status: 0,
+            data: {
+              total_count: 1,
+              details: [{ virtual_warehouse_no: "VW001" }],
+            },
+          }),
+        ),
+    });
+
+    const defaultResponse: WdtApiResponse = await client.api.settingStrategyVirtualWarehouseQuery(
+      {},
+      { pager: { pageNo: 0, pageSize: 100 } },
+    );
+    expect(defaultResponse.status).toBe(0);
+
+    const typedResponse = await client.api.settingStrategyVirtualWarehouseQuery<VirtualWarehouseQueryData>(
+      {},
+      { pager: { pageNo: 0, pageSize: 100 } },
+    );
+    const totalCount: number | undefined = typedResponse.data?.totalCount;
+    const firstWarehouseNo: string | undefined = typedResponse.data?.details[0]?.virtualWarehouseNo;
+
+    expect(totalCount).toBe(1);
+    expect(firstWarehouseNo).toBe("VW001");
   });
 
   test("throws WdtApiError when throwOnApiError is enabled", async () => {
