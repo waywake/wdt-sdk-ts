@@ -560,10 +560,16 @@ export interface WdtWmsStockoutSalesQueryWithDetailData extends WdtResponseData 
   order?: WdtWmsStockoutSalesQueryWithDetailOrderItem[];
 }
 
-export interface WdtSalesLogisticsSyncUpdateRequest extends WdtRequestObject {
-  /** 同步信息列表 */
-  syncList?: unknown[];
+export interface WdtSalesLogisticsSyncUpdateRequestSyncList extends WdtRequestObject {
+  /** 在物流同步接口获取到的物流同步id */
+  syncId?: number | string;
+  /** 0: 同步成功、-100: 还需同步，2:同步失败 */
+  status?: number | string;
+  /** 失败的错误信息，若成功传“” */
+  errorMsg?: string;
 }
+
+export type WdtSalesLogisticsSyncUpdateRequest = readonly [syncList: WdtSalesLogisticsSyncUpdateRequestSyncList[]];
 
 export type WdtSalesLogisticsSyncUpdateData = WdtResponseData;
 
@@ -1061,37 +1067,13 @@ export interface WdtSalesLogisticsSyncGetSyncListExtData extends WdtResponseData
   goodsCount?: number;
 }
 
-export interface WdtWmsStockoutSalesWeighingExtRequest extends WdtRequestObject {
-  /** 物流单号或者出库单号 */
-  logisticsOrTradeNo?: string;
-  /** 如果没有, 可传"" */
-  packageBarcode?: string;
-  /** 包裹重量 */
-  weight?: number;
-  /** 无打包员则传0 */
-  packagerId?: number;
-  /** 默认传false */
-  force?: boolean;
-}
+export type WdtWmsStockoutSalesWeighingExtRequest = readonly [logisticsOrTradeNo: string, packageBarcode: string, weight: number, packagerId: number, force: boolean];
 
 export interface WdtWmsStockoutSalesWeighingExtData extends WdtResponseData {
   logisticsName?: string;
 }
 
-export interface WdtWmsStockoutSalesOnceWeighingRequest extends WdtRequestObject {
-  /** 物流单号或者出库单号 */
-  logisticsOrTradeNo?: string;
-  /** 如果没有, 可传"" */
-  packageBarcode?: string;
-  /** 包裹重量 */
-  weight?: number;
-  /** 无打包员则传0 */
-  packagerId?: number;
-  /** 无打包台信息, 则传空字符串 */
-  operateTableName?: string;
-  /** 默认传false */
-  force?: boolean;
-}
+export type WdtWmsStockoutSalesOnceWeighingRequest = readonly [logisticsOrTradeNo: string, packageBarcode: string, weight: number, packagerId: number, operateTableName: string, force: boolean];
 
 export interface WdtWmsStockoutSalesOnceWeighingData extends WdtResponseData {
   /** 物流公司名称 */
@@ -2451,20 +2433,7 @@ export interface WdtFinancePaymentSearchData extends WdtResponseData {
   order?: WdtFinancePaymentSearchOrderItem[];
 }
 
-export interface WdtWmsStockoutSalesOnceWeighingByNoRequest extends WdtRequestObject {
-  /** 物流单号或者出库单号 */
-  logisticsOrTradeNo?: string;
-  /** 如果没有, 可传"" */
-  packageBarcode?: string;
-  /** 包裹重量 */
-  weight?: number;
-  /** 必须为系统内已存在的员工编号 */
-  packagerNo?: string;
-  /** 无打包台信息, 则传空字符串 */
-  operateTableName?: string;
-  /** 默认传false */
-  force?: boolean;
-}
+export type WdtWmsStockoutSalesOnceWeighingByNoRequest = readonly [logisticsOrTradeNo: string, packageBarcode: string, weight: number, packagerNo: string, operateTableName: string, force: boolean];
 
 export interface WdtWmsStockoutSalesOnceWeighingByNoData extends WdtResponseData {
   /** 物流公司名称 */
@@ -2596,10 +2565,16 @@ export interface WdtSalesTradeEditModifyRemarkErrorItem extends WdtResponseData 
   message?: string;
 }
 
-export interface WdtSalesTradeEditModifyRemarkRequest extends WdtRequestObject {
-  /** 请求参数 */
-  data?: unknown[];
+export interface WdtSalesTradeEditModifyRemarkRequestData extends WdtRequestObject {
+  /** 系统订单编号 */
+  tradeNo?: string;
+  /** 客服备注 */
+  csRemark?: string;
+  /** 是否按追加方式添加，默认否 */
+  isSuperAdd?: boolean;
 }
+
+export type WdtSalesTradeEditModifyRemarkRequest = readonly [data: WdtSalesTradeEditModifyRemarkRequestData];
 
 export interface WdtSalesTradeEditModifyRemarkData extends WdtResponseData {
   /** 成功信息 */
@@ -3204,10 +3179,86 @@ export interface WdtSalesPaymentQueryWithDetailData extends WdtResponseData {
   paymentList?: WdtSalesPaymentQueryWithDetailPaymentListItem[];
 }
 
-export interface WdtSalesTradeImportUploadRequest extends WdtRequestObject {
-  /** 订单列表 */
-  tradeList?: unknown[];
+export interface WdtSalesTradeImportUploadRequestTradeList extends WdtRequestObject {
+  /** 订单编号 */
+  tradeNo?: string;
+  /** 原始单号 */
+  srcTids?: string;
+  /** 原始子单号 */
+  srcOid?: string;
+  /** 订单类别 1：网店销售 2：线下订单 3：售后换货 4：批发业务 7：现款销售 */
+  tradeType?: number | string;
+  /** 订单来源 1：API抓单 2：手工建单 3：导入 5：接口推送 6：补发订单 7：PDA选货开单 */
+  tradeFrom?: number | string;
+  /** 应收金额 */
+  receivable?: number | string;
+  /** 店铺名称 */
+  shopName?: string;
+  /** 仓库名称 */
+  warehouseName?: string;
+  /** 系统内自定义的物流公司名称 */
+  logisticsName?: string;
+  /** 邮费 */
+  postAmount?: number | string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 商家编码 */
+  merchantNo?: string;
+  /** 货品数量 */
+  num?: number | string;
+  /** 货品价格 */
+  orderPrice?: number | string;
+  /** 业务员 */
+  salesman?: string;
+  /** 审单员 */
+  checker?: string;
+  /** 发票类型 0：不需要发票 1：普通发票 2：增值税发票 */
+  invoiceType?: number | string;
+  /** 发票抬头 */
+  invoiceTitle?: string;
+  /** 发票内容 */
+  invoiceContect?: string;
+  /** 客户网名 */
+  buyerNick?: string;
+  /** 收件人 */
+  receiverName?: string;
+  /** 省份 */
+  province?: string;
+  /** 城市 */
+  city?: string;
+  /** 区县 */
+  district?: string;
+  /** 大头笔 */
+  receiverDtb?: string;
+  /** 地址 */
+  receiverAddress?: string;
+  /** 邮编 */
+  receiverZip?: string;
+  /** 电话 */
+  receiverMobile?: string;
+  /** 买家留言 */
+  buyerMessage?: string;
+  /** 客服备注 */
+  csRemark?: string;
+  /** 下单时间 yyyy-MM-dd HH:mm:ss格式 */
+  tradeTime?: string;
+  /** 付款时间 yyyy-MM-dd HH:mm:ss格式 */
+  payTime?: string;
+  /** 审单时间 yyyy-MM-dd HH:mm:ss格式 */
+  checkTime?: string;
+  /** 打单时间 yyyy-MM-dd HH:mm:ss格式 */
+  printTime?: string;
+  /** 扫描时间 yyyy-MM-dd HH:mm:ss格式 */
+  scanTime?: string;
+  /** 发货时间 yyyy-MM-dd HH:mm:ss格式 */
+  consignTime?: string;
+  /** 赠品方式 0：非赠品 1：自动赠送 2：手动赠送 3：回购自动赠送 */
+  giftType?: number | string;
+  /** 货品优惠 */
+  goodsDiscount?: number | string;
 }
+
+export type WdtSalesTradeImportUploadRequest = readonly [tradeList: WdtSalesTradeImportUploadRequestTradeList[]];
 
 export interface WdtSalesTradeImportUploadData extends WdtResponseData {
   /** 固定返回ok,该值不可以作为请求是否成功的标志 */
@@ -3248,10 +3299,7 @@ export interface WdtSalesTradeQueryGetLogDetailListItem extends WdtResponseData 
   type?: number;
 }
 
-export interface WdtSalesTradeQueryGetLogRequest extends WdtRequestObject {
-  /** 订单编号 */
-  tradeNo?: string;
-}
+export type WdtSalesTradeQueryGetLogRequest = readonly [tradeNo: Record<string, unknown>];
 
 export interface WdtSalesTradeQueryGetLogData extends WdtResponseData {
   /** 数据节点 */
@@ -3289,10 +3337,7 @@ export interface WdtSettingCustomAttrGetTradeLabelData extends WdtResponseData {
   totalCount: number;
 }
 
-export interface WdtSalesTradeEditToExceptionRequest extends WdtRequestObject {
-  /** 订单编号 */
-  tradeNo?: string;
-}
+export type WdtSalesTradeEditToExceptionRequest = readonly [tradeNo: string];
 
 export interface WdtSalesTradeEditToExceptionData extends WdtResponseData {
   /** 错误信息为空表示操作成功 */
@@ -4603,10 +4648,7 @@ export interface WdtSalesTradeQueryGetLog2DetailListItem extends WdtResponseData
   type?: number;
 }
 
-export interface WdtSalesTradeQueryGetLog2Request extends WdtRequestObject {
-  /** 订单编号，多个订单编号之间用英文逗号隔开 */
-  tradeNo?: string;
-}
+export type WdtSalesTradeQueryGetLog2Request = readonly [tradeNo: Record<string, unknown>];
 
 export interface WdtSalesTradeQueryGetLog2Data extends WdtResponseData {
   /** 返回结果 */
@@ -4926,10 +4968,56 @@ export interface WdtSettingShopQueryShopData extends WdtResponseData {
   details: WdtSettingShopQueryShopDetailsItem[];
 }
 
-export interface WdtSettingPurchaseProviderPushRequest extends WdtRequestObject {
-  /** 供应商 */
-  provider?: Record<string, unknown>;
+export interface WdtSettingPurchaseProviderPushRequestProvider extends WdtRequestObject {
+  /** 供应商编号 */
+  providerNo?: string;
+  /** 供应商名称 */
+  providerName?: string;
+  /** 联系人 */
+  contact?: string;
+  /** 固话 */
+  telno?: string;
+  /** 手机 */
+  mobile?: string;
+  /** 传真 */
+  fax?: string;
+  /** QQ */
+  qq?: string;
+  /** 邮编 */
+  zip?: string;
+  /** 旺旺 */
+  wangwang?: string;
+  /** 邮箱 */
+  email?: string;
+  /** 网址 */
+  website?: string;
+  /** 地址 */
+  address?: string;
+  /** 到货天数 */
+  arriveCycleDays?: number | string;
+  /** 备注 */
+  remark?: string;
+  /** 是否停用 0:否 1:是 默认为0 */
+  isDisabled?: number | string;
+  /** 银行卡号 */
+  accountBankNo?: string;
+  /** 收款银行 */
+  accountBank?: string;
+  /** 收款人 */
+  collectName?: string;
+  /** 省份ID， 点击查看城市代码表 */
+  province?: number | string;
+  /** 城市ID， 点击查看城市代码表 */
+  city?: number | string;
+  /** 地区ID， 点击查看城市代码表 */
+  district?: number | string;
+  /** 供应商分组 */
+  providerGroup?: string;
+  /** 跟进人（传值为员工的员工昵称） */
+  shortname?: string;
 }
+
+export type WdtSettingPurchaseProviderPushRequest = readonly [provider: WdtSettingPurchaseProviderPushRequestProvider];
 
 export interface WdtSettingPurchaseProviderPushData extends WdtResponseData {
   /** 0表示推送成功 */
@@ -5237,12 +5325,203 @@ export interface WdtSalesTradeEditUploadChangeGoodsByApiRequest extends WdtReque
 
 export type WdtSalesTradeEditUploadChangeGoodsByApiData = WdtResponseData;
 
-export interface WdtGoodsGoodsPushRequest extends WdtRequestObject {
-  /** 货品信息 */
-  goodsInfo: Record<string, unknown>;
-  /** 规格信息列表 */
-  specInfoList: unknown[];
+export interface WdtGoodsGoodsPushRequestGoodsInfo extends WdtRequestObject {
+  /** 货品编号 */
+  goodsNo?: string;
+  /** 货品名称’ */
+  goodsName?: string;
+  /** 分类名称,不传或为空则默认为’无’ */
+  className?: string;
+  /** 品牌名称, 不传或为空则默认为’无’ */
+  brandName?: string;
+  /** 基本单位名称, 不传或为空则默认为’无’ */
+  unitName?: string;
+  /** 辅助单位名称, 不传或为空则默认为’无’ */
+  auxUnitName?: string;
+  /** 货品标记名称, 不传或为空则默认为’无’ */
+  flagName?: string;
+  /** 默认0, 0：其它 1：销售货品 2：原材料 3：包装物 4：周转材料 5：虚拟商品 6：固定资产 8：分装箱 9：周期送货品 10：赠品 */
+  goodsType?: number | string;
+  /** 货品简称 */
+  shortName?: string;
+  /** 货品别名 */
+  alias?: string;
+  /** 产地 */
+  origin?: string;
+  /** 货品备注 */
+  remark?: string;
+  /** 货品自定义属性1 */
+  prop1?: string;
+  /** 货品自定义属性2 */
+  prop2?: string;
+  /** 货品自定义属性3 */
+  prop3?: string;
+  /** 货品自定义属性4 */
+  prop4?: string;
+  /** 货品自定义属性5 */
+  prop5?: string;
+  /** 货品自定义属性6 */
+  prop6?: string;
+  /** 货品自定义属性7 */
+  prop7?: string;
+  /** 货品自定义属性8 */
+  prop8?: string;
+  /** 货品自定义属性9 */
+  prop9?: string;
+  /** 货品自定义属性10 */
+  prop10?: string;
+  /** 货品自定义属性11 */
+  prop11?: string;
+  /** 货品自定义属性12 */
+  prop12?: string;
+  /** 货品自定义属性13 */
+  prop13?: string;
+  /** 货品自定义属性14 */
+  prop14?: string;
+  /** 货品自定义属性15 */
+  prop15?: string;
+  /** 货品自定义属性16 */
+  prop16?: string;
+  /** 货品自定义属性17 */
+  prop17?: string;
+  /** 货品自定义属性18 */
+  prop18?: string;
+  /** 货品自定义属性19 */
+  prop19?: string;
+  /** 货品自定义属性20 */
+  prop20?: string;
+  /** 如果品牌,分类不存在,是否自动创建.不填默认为false */
+  autoCreateBc?: boolean;
 }
+
+export interface WdtGoodsGoodsPushRequestSpecInfoList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 规格码 */
+  specCode?: string;
+  /** 条码 */
+  barcode?: string;
+  /** 规格名称 */
+  specName?: string;
+  /** 默认0 （需要的仓库流程相加） 2、无需验货 8、需要质检 16、无需拣货 32、无需唯一码 64、无需自动打印吊牌 */
+  wmsProcessMask?: number | string;
+  /** 默认无,可选值:自定义货品标签的名称(参考属性名称编辑页面->货品标签)多个标签使用英文逗号拼接 */
+  goodsLabel?: string;
+  /** 默认0,0不启用序列号 1强序列号 2弱序列号 */
+  snType?: number | string;
+  /** 最低价 */
+  lowestPrice?: number | string;
+  /** 零售价 */
+  retailPrice?: number | string;
+  /** 批发价 */
+  wholesalePrice?: number | string;
+  /** 会员价 */
+  memberPrice?: number | string;
+  /** 市场价 */
+  marketPrice?: number | string;
+  /** 有效期天数 */
+  validityDays?: number | string;
+  /** 最佳销售天数 */
+  salesDays?: number | string;
+  /** 最佳收货天数 */
+  receiveDays?: number | string;
+  /** 重量 */
+  weight?: number | string;
+  /** 高 */
+  height?: number | string;
+  /** 长 */
+  length?: number | string;
+  /** 宽 */
+  width?: number | string;
+  /** 默认0, 0非大件1普通大件2独立大件（不可和小件一起发) 3按箱规拆分 -1非单发件 */
+  largeType?: number | string;
+  /** 单品自定义属性1 */
+  prop1?: string;
+  /** 单品自定义属性2 */
+  prop2?: string;
+  /** 单品自定义属性3 */
+  prop3?: string;
+  /** 单品自定义属性4 */
+  prop4?: string;
+  /** 单品自定义属性5 */
+  prop5?: string;
+  /** 单品自定义属性6 */
+  prop6?: string;
+  /** 单品自定义属性7 */
+  prop7?: string;
+  /** 单品自定义属性8 */
+  prop8?: string;
+  /** 单品自定义属性9 */
+  prop9?: string;
+  /** 单品自定义属性10 */
+  prop10?: string;
+  /** 单品自定义属性11 */
+  prop11?: string;
+  /** 单品自定义属性12 */
+  prop12?: string;
+  /** 单品自定义属性13 */
+  prop13?: string;
+  /** 单品自定义属性14 */
+  prop14?: string;
+  /** 单品自定义属性15 */
+  prop15?: string;
+  /** 单品自定义属性16 */
+  prop16?: string;
+  /** 单品自定义属性17 */
+  prop17?: string;
+  /** 单品自定义属性18 */
+  prop18?: string;
+  /** 单品自定义属性19 */
+  prop19?: string;
+  /** 单品自定义属性20 */
+  prop20?: string;
+  /** 自定义价格1 */
+  customPrice1?: number | string;
+  /** 自定义价格2 */
+  customPrice2?: number | string;
+  /** 默认0,0:不允许,1 允许 */
+  isLowerCost?: boolean;
+  /** 图片链接 */
+  imgUrl?: string;
+  /** 单品备注 */
+  remark?: string;
+  /** 销售积分 */
+  saleScore?: number | string;
+  /** 打包积分 */
+  packScore?: number | string;
+  /** 拣货积分 */
+  pickScore?: number | string;
+  /** 分拣积分 */
+  sortScore?: number | string;
+  /** 扫描积分 */
+  scanScore?: number | string;
+  /** 补货积分 */
+  supplyScore?: number | string;
+  /** 上架积分 */
+  shelveScore?: number | string;
+  /** 入库积分 */
+  stockinScore?: number | string;
+  /** 质检积分 */
+  inspectScore?: number | string;
+  /** 分装积分 */
+  packingScore?: number | string;
+  /** 操作积分 */
+  operateScore?: number | string;
+  /** 称重积分 */
+  weighScore?: number | string;
+  /** 发货积分 */
+  consignScore?: number | string;
+  /** 税务编码 */
+  taxCode?: string;
+  /** 基本单位名称 */
+  unitName?: string;
+  /** 辅助单位名称 */
+  auxUnitName?: string;
+  /** 保质期计算方式 0：按天 1：按月 默认0 */
+  validityType?: number | string;
+}
+
+export type WdtGoodsGoodsPushRequest = readonly [goodsInfo: WdtGoodsGoodsPushRequestGoodsInfo, specInfoList: WdtGoodsGoodsPushRequestSpecInfoList[]];
 
 export type WdtGoodsGoodsPushData = WdtResponseData;
 
@@ -5798,10 +6077,37 @@ export interface WdtGoodsApiGoodsSearchData extends WdtResponseData {
   totalCount: number;
 }
 
-export interface WdtGoodsApiGoodsUploadRequest extends WdtRequestObject {
+export interface WdtGoodsApiGoodsUploadRequestParam extends WdtRequestObject {
+  /** 店铺编号 */
+  shopNo: string;
   /** 平台货品数据 */
-  param: Record<string, unknown>;
+  goodsList: WdtGoodsApiGoodsUploadRequestGoodsList[];
 }
+
+export interface WdtGoodsApiGoodsUploadRequestGoodsList extends WdtRequestObject {
+  /** 平台货品ID, 不传默认为空 */
+  goodsId?: string;
+  /** 平台规格ID, 不传默认为空 */
+  specId?: string;
+  /** 平台货品编号, 不传默认为空 */
+  goodsNo?: string;
+  /** 平台规格编码, 不传默认为空 */
+  specNo?: string;
+  /** 0：删除 1：在架 2：下架 不传默认1 */
+  status?: number | string;
+  /** 平台货品名称, 不传默认为空 */
+  goodsName?: string;
+  /** 平台规格名称, 不传默认为空 */
+  specName?: string;
+  /** 图片url, 不传默认为空 */
+  picUrl?: string;
+  /** 平台售价，不传默认为0 */
+  price?: number | string;
+  /** 库存数量，不传默认为0 */
+  stockNum?: number | string;
+}
+
+export type WdtGoodsApiGoodsUploadRequest = readonly [param: WdtGoodsApiGoodsUploadRequestParam];
 
 export interface WdtGoodsApiGoodsUploadData extends WdtResponseData {
   /** 响应成功则返回0 */
@@ -5885,6 +6191,8 @@ export interface WdtProcessProcessSearchOrderItem extends WdtResponseData {
   realityCount?: number;
   /** true： 分步生产 false： 快速生产 */
   processType?: boolean;
+  /** 加工类型仅在委外仓-仓内加工的场景下产生 0:无 1:仓内组合加工 2:仓内组合拆分 */
+  serviceType?: number;
   /** 出库仓库编号 */
   outWarehouseNo?: string;
   /** 出库仓库id */
@@ -6099,10 +6407,149 @@ export interface WdtGoodsGoodsBatchPushErrorListItem extends WdtResponseData {
   error: string;
 }
 
-export interface WdtGoodsGoodsBatchPushRequest extends WdtRequestObject {
-  /** 货品信息 */
-  goodsInfo: unknown[];
+export interface WdtGoodsGoodsBatchPushRequestGoodsInfo extends WdtRequestObject {
+  /** 货品编号 */
+  goodsNo?: string;
+  /** 货品名称 */
+  goodsName?: string;
+  /** 分类名称,不传或为空则默认为’无’ */
+  className?: string;
+  /** 品牌名称, 不传或为空则默认为’无’ */
+  brandName?: string;
+  /** 基本单位名称, 不传或为空则默认为’无’ */
+  unitName?: string;
+  /** 辅助单位名称, 不传或为空则默认为’无’ */
+  auxUnitName?: string;
+  /** 货品标记名称, 不传或为空则默认为’无’ */
+  flagName?: string;
+  /** 默认0, 0：其它 1：销售货品 2：原材料 3：包装物 4：周转材料 5：虚拟商品 6：固定资产 8：分装箱 */
+  goodsType?: number | string;
+  /** 货品简称 */
+  shortName?: string;
+  /** 货品别名 */
+  alias?: string;
+  /** 拼音 */
+  pinyin?: string;
+  /** 产地 */
+  origin?: string;
+  /** 货品备注 */
+  remark?: string;
+  /** 货品自定义属性1 */
+  prop1?: string;
+  /** 货品自定义属性2 */
+  prop2?: string;
+  /** 货品自定义属性3 */
+  prop3?: string;
+  /** 货品自定义属性4 */
+  prop4?: string;
+  /** 货品自定义属性5 */
+  prop5?: string;
+  /** 货品自定义属性6 */
+  prop6?: string;
+  /** 如果品牌,分类不存在,是否自动创建.不填默认为false */
+  autoCreateBc?: boolean;
+  /** 单品信息列表 */
+  specList?: WdtGoodsGoodsBatchPushRequestSpecList[];
 }
+
+export interface WdtGoodsGoodsBatchPushRequestSpecList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 规格码 */
+  specCode?: string;
+  /** 条码 */
+  barcode?: string;
+  /** 规格名称 */
+  specName?: string;
+  /** 默认0 （需要的仓库流程相加） 2、无需验货 8、需要质检 16、无需拣货 32、无需唯一码 64、无需自动打印吊牌 */
+  wmsProcessMask?: number | string;
+  /** 默认无,可选值:自定义货品标签的名称(参考属性名称编辑页面->货品标签)多个标签使用英文逗号拼接 */
+  goodsLabel?: string;
+  /** 默认0,0不启用序列号 1强序列号 2弱序列号 */
+  snType?: number | string;
+  /** 最低价 */
+  lowestPrice?: number | string;
+  /** 零售价 */
+  retailPrice?: number | string;
+  /** 批发价 */
+  wholesalePrice?: number | string;
+  /** 会员价 */
+  memberPrice?: number | string;
+  /** 市场价 */
+  marketPrice?: number | string;
+  /** 有效期天数 */
+  validityDays?: number | string;
+  /** 最佳销售天数 */
+  salesDays?: number | string;
+  /** 最佳收货天数 */
+  receiveDays?: number | string;
+  /** 重量 */
+  weight?: number | string;
+  /** 高 */
+  height?: number | string;
+  /** 长 */
+  length?: number | string;
+  /** 宽 */
+  width?: number | string;
+  /** 默认0, 0非大件1普通大件2独立大件（不可和小件一起发) 3按箱规拆分 -1非单发件 */
+  largeType?: number | string;
+  /** 单品自定义属性1 */
+  prop1?: string;
+  /** 单品自定义属性2 */
+  prop2?: string;
+  /** 单品自定义属性3 */
+  prop3?: string;
+  /** 单品自定义属性4 */
+  prop4?: string;
+  /** 单品自定义属性5 */
+  prop5?: string;
+  /** 单品自定义属性6 */
+  prop6?: string;
+  /** 自定义价格1 */
+  customPrice1?: number | string;
+  /** 自定义价格2 */
+  customPrice2?: number | string;
+  /** 默认0,0:不允许,1 允许 */
+  isLowerCost?: boolean;
+  /** 图片链接 */
+  imgUrl?: string;
+  /** 单品备注 */
+  remark?: string;
+  /** 销售积分 */
+  saleScore?: number | string;
+  /** 打包积分 */
+  packScore?: number | string;
+  /** 拣货积分 */
+  pickScore?: number | string;
+  /** 分拣积分 */
+  sortScore?: number | string;
+  /** 扫描积分 */
+  scanScore?: number | string;
+  /** 补货积分 */
+  supplyScore?: number | string;
+  /** 上架积分 */
+  shelveScore?: number | string;
+  /** 入库积分 */
+  stockinScore?: number | string;
+  /** 质检积分 */
+  inspectScore?: number | string;
+  /** 分装积分 */
+  packingScore?: number | string;
+  /** 操作积分 */
+  operateScore?: number | string;
+  /** 称重积分 */
+  weighScore?: number | string;
+  /** 发货积分 */
+  consignScore?: number | string;
+  /** 税务编码 */
+  taxCode?: string;
+  /** 基本单位名称 */
+  unitName?: string;
+  /** 辅助单位名称 */
+  auxUnitName?: string;
+}
+
+export type WdtGoodsGoodsBatchPushRequest = readonly [goodsInfo: WdtGoodsGoodsBatchPushRequestGoodsInfo[]];
 
 export type WdtGoodsGoodsBatchPushData = WdtResponseData;
 
@@ -6212,6 +6659,10 @@ export interface WdtProcessBomSearchRequest extends WdtRequestObject {
   bomNo?: string;
   /** 是：true 否：false 默认false */
   showDisabled?: boolean;
+  /** 原料商家编码 */
+  materialSpecNo?: string;
+  /** 成品商家编码 */
+  productSpecNo?: string;
 }
 
 export interface WdtProcessBomSearchData extends WdtResponseData {
@@ -6230,10 +6681,20 @@ export interface WdtGoodsBarcodeUploadErrorListItem extends WdtResponseData {
   message: string;
 }
 
-export interface WdtGoodsBarcodeUploadRequest extends WdtRequestObject {
-  /** 业务请求参数 */
-  barcodeInfoList: unknown[];
+export interface WdtGoodsBarcodeUploadRequestBarcodeInfoList extends WdtRequestObject {
+  /** 单品/组合装商家编码 */
+  merchantNo: string;
+  /** 条码 */
+  barcode?: string;
+  /** 1：新增 2：更新 默认1 */
+  type?: number | string;
+  /** 默认1 */
+  num?: number | string;
+  /** 原条码，仅更新操作有效 */
+  oldBarcode?: string;
 }
+
+export type WdtGoodsBarcodeUploadRequest = readonly [barcodeInfoList: WdtGoodsBarcodeUploadRequestBarcodeInfoList[]];
 
 export interface WdtGoodsBarcodeUploadData extends WdtResponseData {
   /** 操作全部成功时列表为空 */
@@ -6247,12 +6708,203 @@ export interface WdtGoodsGoodsPush2SpecInfoListItem extends WdtResponseData {
   specNo: string;
 }
 
-export interface WdtGoodsGoodsPush2Request extends WdtRequestObject {
-  /** 货品信息 */
-  goodsInfo: Record<string, unknown>;
-  /** 规格信息列表 */
-  specInfoList: unknown[];
+export interface WdtGoodsGoodsPush2RequestGoodsInfo extends WdtRequestObject {
+  /** 货品编号 */
+  goodsNo?: string;
+  /** 货品名称’ */
+  goodsName?: string;
+  /** 分类名称,不传或为空则默认为’无’ */
+  className?: string;
+  /** 品牌名称, 不传或为空则默认为’无’ */
+  brandName?: string;
+  /** 基本单位名称, 不传或为空则默认为’无’ */
+  unitName?: string;
+  /** 辅助单位名称, 不传或为空则默认为’无’ */
+  auxUnitName?: string;
+  /** 货品标记名称, 不传或为空则默认为’无’ */
+  flagName?: string;
+  /** 默认0, 0：其它 1：销售货品 2：原材料 3：包装物 4：周转材料 5：虚拟商品 6：固定资产 8：分装箱 9：周期送货品 10：赠品 */
+  goodsType?: number | string;
+  /** 货品简称 */
+  shortName?: string;
+  /** 货品别名 */
+  alias?: string;
+  /** 产地 */
+  origin?: string;
+  /** 货品备注 */
+  remark?: string;
+  /** 货品自定义属性1 */
+  prop1?: string;
+  /** 货品自定义属性2 */
+  prop2?: string;
+  /** 货品自定义属性3 */
+  prop3?: string;
+  /** 货品自定义属性4 */
+  prop4?: string;
+  /** 货品自定义属性5 */
+  prop5?: string;
+  /** 货品自定义属性6 */
+  prop6?: string;
+  /** 货品自定义属性7 */
+  prop7?: string;
+  /** 货品自定义属性8 */
+  prop8?: string;
+  /** 货品自定义属性9 */
+  prop9?: string;
+  /** 货品自定义属性10 */
+  prop10?: string;
+  /** 货品自定义属性11 */
+  prop11?: string;
+  /** 货品自定义属性12 */
+  prop12?: string;
+  /** 货品自定义属性13 */
+  prop13?: string;
+  /** 货品自定义属性14 */
+  prop14?: string;
+  /** 货品自定义属性15 */
+  prop15?: string;
+  /** 货品自定义属性16 */
+  prop16?: string;
+  /** 货品自定义属性17 */
+  prop17?: string;
+  /** 货品自定义属性18 */
+  prop18?: string;
+  /** 货品自定义属性19 */
+  prop19?: string;
+  /** 货品自定义属性20 */
+  prop20?: string;
+  /** 如果品牌,分类不存在,是否自动创建.不填默认为false */
+  autoCreateBc?: boolean;
 }
+
+export interface WdtGoodsGoodsPush2RequestSpecInfoList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 规格码 */
+  specCode?: string;
+  /** 条码 */
+  barcode?: string;
+  /** 规格名称 */
+  specName?: string;
+  /** 默认0 （需要的仓库流程相加） 2、无需验货 8、需要质检 16、无需拣货 32、无需唯一码 64、无需自动打印吊牌 */
+  wmsProcessMask?: number | string;
+  /** 默认无,可选值:自定义货品标签的名称(参考属性名称编辑页面->货品标签)多个标签使用英文逗号拼接 */
+  goodsLabel?: string;
+  /** 默认0,0不启用序列号 1强序列号 2弱序列号 */
+  snType?: number | string;
+  /** 最低价 */
+  lowestPrice?: number | string;
+  /** 零售价 */
+  retailPrice?: number | string;
+  /** 批发价 */
+  wholesalePrice?: number | string;
+  /** 会员价 */
+  memberPrice?: number | string;
+  /** 市场价 */
+  marketPrice?: number | string;
+  /** 有效期天数 */
+  validityDays?: number | string;
+  /** 最佳销售天数 */
+  salesDays?: number | string;
+  /** 最佳收货天数 */
+  receiveDays?: number | string;
+  /** 重量 */
+  weight?: number | string;
+  /** 高 */
+  height?: number | string;
+  /** 长 */
+  length?: number | string;
+  /** 宽 */
+  width?: number | string;
+  /** 默认0, 0非大件1普通大件2独立大件（不可和小件一起发) 3按箱规拆分 -1非单发件 */
+  largeType?: number | string;
+  /** 单品自定义属性1 */
+  prop1?: string;
+  /** 单品自定义属性2 */
+  prop2?: string;
+  /** 单品自定义属性3 */
+  prop3?: string;
+  /** 单品自定义属性4 */
+  prop4?: string;
+  /** 单品自定义属性5 */
+  prop5?: string;
+  /** 单品自定义属性6 */
+  prop6?: string;
+  /** 单品自定义属性7 */
+  prop7?: string;
+  /** 单品自定义属性8 */
+  prop8?: string;
+  /** 单品自定义属性9 */
+  prop9?: string;
+  /** 单品自定义属性10 */
+  prop10?: string;
+  /** 单品自定义属性11 */
+  prop11?: string;
+  /** 单品自定义属性12 */
+  prop12?: string;
+  /** 单品自定义属性13 */
+  prop13?: string;
+  /** 单品自定义属性14 */
+  prop14?: string;
+  /** 单品自定义属性15 */
+  prop15?: string;
+  /** 单品自定义属性16 */
+  prop16?: string;
+  /** 单品自定义属性17 */
+  prop17?: string;
+  /** 单品自定义属性18 */
+  prop18?: string;
+  /** 单品自定义属性19 */
+  prop19?: string;
+  /** 单品自定义属性20 */
+  prop20?: string;
+  /** 自定义价格1 */
+  customPrice1?: number | string;
+  /** 自定义价格2 */
+  customPrice2?: number | string;
+  /** 默认0,0:不允许,1 允许 */
+  isLowerCost?: boolean;
+  /** 图片链接 */
+  imgUrl?: string;
+  /** 单品备注 */
+  remark?: string;
+  /** 销售积分 */
+  saleScore?: number | string;
+  /** 打包积分 */
+  packScore?: number | string;
+  /** 拣货积分 */
+  pickScore?: number | string;
+  /** 分拣积分 */
+  sortScore?: number | string;
+  /** 扫描积分 */
+  scanScore?: number | string;
+  /** 补货积分 */
+  supplyScore?: number | string;
+  /** 上架积分 */
+  shelveScore?: number | string;
+  /** 入库积分 */
+  stockinScore?: number | string;
+  /** 质检积分 */
+  inspectScore?: number | string;
+  /** 分装积分 */
+  packingScore?: number | string;
+  /** 操作积分 */
+  operateScore?: number | string;
+  /** 称重积分 */
+  weighScore?: number | string;
+  /** 发货积分 */
+  consignScore?: number | string;
+  /** 税务编码 */
+  taxCode?: string;
+  /** 基本单位名称 */
+  unitName?: string;
+  /** 辅助单位名称 */
+  auxUnitName?: string;
+  /** 保质期计算方式 0：按天 1：按月 默认0 */
+  validityType?: number | string;
+}
+
+export type WdtGoodsGoodsPush2Request = readonly [goodsInfo: WdtGoodsGoodsPush2RequestGoodsInfo, specInfoList: WdtGoodsGoodsPush2RequestSpecInfoList[]];
 
 export interface WdtGoodsGoodsPush2Data extends WdtResponseData {
   /** 货品id */
@@ -6672,10 +7324,7 @@ export interface WdtPurchasePurchaseReturnQueryWithDetailData extends WdtRespons
   totalCount?: number;
 }
 
-export interface WdtPurchasePurchaseReturnCancelOrderRequest extends WdtRequestObject {
-  /** 采购退货单号 */
-  returnNo?: string;
-}
+export type WdtPurchasePurchaseReturnCancelOrderRequest = readonly [returnNo: string];
 
 export interface WdtPurchasePurchaseReturnCancelOrderData extends WdtResponseData {
   /** 如果取消成功message内容为OK,否则为错误信息 */
@@ -6684,23 +7333,122 @@ export interface WdtPurchasePurchaseReturnCancelOrderData extends WdtResponseDat
   status: number;
 }
 
-export interface WdtPurchasePurchaseReturnCreateOrderRequest extends WdtRequestObject {
-  /** 采购退货单单据信息 */
-  orderInfo: Record<string, unknown>;
-  /** 采购退货单明细信息 */
-  detailList: unknown[];
-  /** 是否审核 */
-  isCheck: boolean;
+export interface WdtPurchasePurchaseReturnCreateOrderRequestOrderInfo extends WdtRequestObject {
+  /** 外部单号 （创建成功后作为系统退货单号） */
+  outerNo: string;
+  /** 仓库编码 */
+  warehouseNo: string;
+  /** 供应商 编号 */
+  providerNo: string;
+  /** ERP内维护的采购业务类型的物流公司编号 */
+  logisticsNo?: string;
+  /** 邮费 */
+  postFee?: number | string;
+  /** 其他费用 */
+  otherFee?: number | string;
+  /** 联系人（若未传该参数，使用供应商默认的联系人） */
+  contact?: string;
+  /** 联系电话（若未传该参数，使用供应商默认的电话） */
+  telno?: string;
+  /** 收件地址 （当省份、城市、区域、地址字段皆为空时，默认使用供应商的省市区及地址信息） */
+  receiveAddress?: string;
+  /** 省编码，可以查看 城市代码表 ， （当省份、城市、区域、地址字段皆为空时，默认使用供应商的省市区及地址信息） */
+  receiveProvince?: string;
+  /** 市编码，可以查看 城市代码 表 （当省份、城市、区域、地址字段皆为空时，默认使用供应商的省市区及地址信息） */
+  receiveCity?: string;
+  /** 区编码，可以查看 城市代码 表 （当省份、城市、区域、地址字段皆为空时，默认使用供应商的省市区及地址信息） */
+  receiveDistrict?: string;
+  /** 自定义属性1 */
+  prop1?: string;
+  /** 自定义属性2 */
+  prop2?: string;
+  /** 备注 */
+  remark?: string;
+  /** 引用的采购单号，采购单状态要大于已审核 */
+  refPurchaseNos?: unknown[];
+  /** 0：不取消 1：审核失败后取消 默认0 */
+  checkFailCancel?: number | string;
 }
+
+export interface WdtPurchasePurchaseReturnCreateOrderRequestDetailList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 退货数量 */
+  num: number | string;
+  /** 折扣字段，默认值为1，1代表原价，无折扣；假设需要折扣为一折时，可将字段值传为0.1，同理，折扣为5折时，传值0.5；折扣为八折时，传值0.8，以此类推 */
+  discount?: number | string;
+  /** 税率，不传默认值0 */
+  taxRate?: number | string;
+  /** 单价，不传为默认值0 */
+  price?: number | string;
+  /** 退货单位（辅助单位） */
+  unitName?: string;
+  /** 是否残次品 true:残次品 false:正品 */
+  defect?: boolean;
+  /** 备注 */
+  remark?: string;
+  /** 批次号 */
+  batchNo?: string;
+  /** 有效期：样例:2020-04-20 00:00:00 */
+  expireDate?: string;
+  /** 税后金额 */
+  taxPrice?: number | string;
+}
+
+export type WdtPurchasePurchaseReturnCreateOrderRequest = readonly [orderInfo: WdtPurchasePurchaseReturnCreateOrderRequestOrderInfo, detailList: WdtPurchasePurchaseReturnCreateOrderRequestDetailList[], isCheck: boolean];
 
 export type WdtPurchasePurchaseReturnCreateOrderData = WdtResponseData;
 
-export interface WdtWmsStockinPurchaseUploadRequest extends WdtRequestObject {
-  /** 入库单单据信息 */
-  stockinOrder?: Record<string, unknown>;
-  /** 入库单明细信息 */
-  stockinDetailList?: unknown[];
+export interface WdtWmsStockinPurchaseUploadRequestStockinOrder extends WdtRequestObject {
+  /** 采购单号 */
+  purchaseNo?: string;
+  /** 仓库编号 */
+  warehouseNo?: string;
+  /** 系统内自定义物流的编码 */
+  logisticsCode?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 默认0 0：编辑中 1：已提交/待审核 2：已完成 */
+  createMode?: number | string;
+  /** 传该字段时 可以不传purchase_no、warehouse_no */
+  preOrderNo?: string;
 }
+
+export interface WdtWmsStockinPurchaseUploadRequestStockinDetailList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 数量 */
+  num?: number | string;
+  /** 默认为非残次品 */
+  defect?: boolean;
+  /** （辅助单位）默认为”无” */
+  unitName?: string;
+  /** 批次号，如采购入库单内批次与采购单内批次不一致，单据推送无法成功，但批次依然自动建立 */
+  batchNo?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 货位编号 */
+  positionNo?: string;
+  /** sn码，用英文逗号分隔（1.6.0.9版本及以上支持强序列号产品 ， 1.6.1.1版本及以支持弱序列号产品 create_mode=2 直接推送已完成状态的入库单 ） */
+  snStrings?: string;
+  /** 生产日期 */
+  productionDate?: string;
+  /** 备注 */
+  remark?: string;
+  /** 序列号和辅助序列号之间的对应关系,有辅助序列号的情况下需要传该字段 */
+  snInfos?: unknown[];
+}
+
+export interface WdtWmsStockinPurchaseUploadRequestSnInfo extends WdtRequestObject {
+  /** 序列号 */
+  sn?: string;
+  /** 辅助序列号 */
+  secondSn?: string;
+}
+
+export type WdtWmsStockinPurchaseUploadRequest = readonly [stockinOrder: WdtWmsStockinPurchaseUploadRequestStockinOrder, stockinDetailList: WdtWmsStockinPurchaseUploadRequestStockinDetailList[]];
 
 export type WdtWmsStockinPurchaseUploadData = WdtResponseData;
 
@@ -7425,17 +8173,11 @@ export interface WdtWmsStockoutPurchaseReturnQueryWithDetailData extends WdtResp
   order?: WdtWmsStockoutPurchaseReturnQueryWithDetailOrderItem[];
 }
 
-export interface WdtWmsStockinPurchaseCancelRequest extends WdtRequestObject {
-  /** 采购入库单号 */
-  stockinNo?: string;
-}
+export type WdtWmsStockinPurchaseCancelRequest = readonly [stockinNo: string];
 
 export type WdtWmsStockinPurchaseCancelData = WdtResponseData;
 
-export interface WdtPurchasePurchaseOrderCancelOrderRequest extends WdtRequestObject {
-  /** 采购单号 */
-  purchaseNo?: string;
-}
+export type WdtPurchasePurchaseOrderCancelOrderRequest = readonly [purchaseNo: string];
 
 export type WdtPurchasePurchaseOrderCancelOrderData = WdtResponseData;
 
@@ -7446,10 +8188,7 @@ export interface WdtPurchasePurchaseOrderPendingErrorInfoItem extends WdtRespons
   message: string;
 }
 
-export interface WdtPurchasePurchaseOrderPendingRequest extends WdtRequestObject {
-  /** 采购单号 */
-  purchaseNos: unknown[];
-}
+export type WdtPurchasePurchaseOrderPendingRequest = readonly [purchaseNos: unknown[]];
 
 export interface WdtPurchasePurchaseOrderPendingData extends WdtResponseData {
   /** 错误信息，如果没有错误信息返回空List */
@@ -7465,10 +8204,7 @@ export interface WdtPurchasePurchaseReturnPendingErrorInfoItem extends WdtRespon
   message: string;
 }
 
-export interface WdtPurchasePurchaseReturnPendingRequest extends WdtRequestObject {
-  /** 采购退货单号 */
-  purchaseReturnNos: unknown[];
-}
+export type WdtPurchasePurchaseReturnPendingRequest = readonly [purchaseReturnNos: unknown[]];
 
 export interface WdtPurchasePurchaseReturnPendingData extends WdtResponseData {
   /** 错误信息，如果没有错误信息返回空List */
@@ -7477,22 +8213,75 @@ export interface WdtPurchasePurchaseReturnPendingData extends WdtResponseData {
   status: number;
 }
 
-export interface WdtPurchaseProviderGoodsUploadRequest extends WdtRequestObject {
-  /** 供应商货品明细 */
-  purchaseProviderGoodsList: unknown[];
+export interface WdtPurchaseProviderGoodsUploadRequestPurchaseProviderGoodsList extends WdtRequestObject {
+  /** 供应商编号 */
+  providerNo?: string;
+  /** 商家编码 */
+  specNo?: string;
+  /** 默认1 */
+  minPurchaseNum?: number | string;
+  /** 默认无， 传入的采购单位必须和基本单位(单品无基本单位则取货品的基本单位)匹配 */
+  purchaseUnitName?: string;
+  /** 折扣字段，默认值为1，1代表原价，无折扣；假设需要折扣为一折时，可将字段值传为0.1，同理，折扣为5折时，传值0.5；折扣为八折时，传值0.8，以此类推 */
+  discount?: number | string;
+  /** 默认空串 */
+  providerGoodsNo?: string;
+  /** 默认0 */
+  price?: number | string;
+  /** 默认0 */
+  lowestPrice?: number | string;
+  /** 默认0 */
+  purchaseCycleDay?: number | string;
+  /** 默认0 */
+  taxRate?: number | string;
+  /** 默认true */
+  isMaster?: boolean;
+  /** 默认空 */
+  remark?: string;
 }
+
+export type WdtPurchaseProviderGoodsUploadRequest = readonly [purchaseProviderGoodsList: WdtPurchaseProviderGoodsUploadRequestPurchaseProviderGoodsList[]];
 
 export interface WdtPurchaseProviderGoodsUploadData extends WdtResponseData {
   /** 无异常则list为空 */
   errorList: unknown[];
 }
 
-export interface WdtWmsStockoutPurchaseReturnCreateOrderRequest extends WdtRequestObject {
-  /** 采购退货出库单据信息 */
-  orderInfo: Record<string, unknown>;
-  /** 采购退货出库单明细信息 */
-  detailList: unknown[];
+export interface WdtWmsStockoutPurchaseReturnCreateOrderRequestOrderInfo extends WdtRequestObject {
+  /** 采购退货单号 */
+  returnNo: string;
+  /** 仓库编号 */
+  warehouseNo: string;
+  /** 系统物流编码 */
+  logisticsCode?: string;
+  /** 默认0 0：编辑中/未确认1：已提交/待审核 2：已审核 */
+  createMode?: number | string;
+  /** 备注 */
+  remark?: string;
 }
+
+export interface WdtWmsStockoutPurchaseReturnCreateOrderRequestDetailList extends WdtRequestObject {
+  /** 单品信息 */
+  specNo: string;
+  /** 出库数量 */
+  num: number | string;
+  /** 采购单位 */
+  unitName?: string;
+  /** 货位编号 */
+  positionNo?: string;
+  /** 批次号 */
+  batchNo?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 是否残次品 true:残次品 false:正品 */
+  defect?: boolean;
+  /** 备注 */
+  remark?: string;
+  /** 序列号信息，多个序列号之间用英文逗号隔开( 1.6.0.9版本及以上 强序列号产品 ， 1.6.1.1版本及以支持弱序列号产品 支持推送 create_mode =2 直接入库 ) */
+  snStrings?: string;
+}
+
+export type WdtWmsStockoutPurchaseReturnCreateOrderRequest = readonly [orderInfo: WdtWmsStockoutPurchaseReturnCreateOrderRequestOrderInfo, detailList: WdtWmsStockoutPurchaseReturnCreateOrderRequestDetailList[]];
 
 export type WdtWmsStockoutPurchaseReturnCreateOrderData = WdtResponseData;
 
@@ -7606,10 +8395,7 @@ export interface WdtPurchasePurchaseReturnBatchCancelOrderErrorInfoItem extends 
   message: string;
 }
 
-export interface WdtPurchasePurchaseReturnBatchCancelOrderRequest extends WdtRequestObject {
-  /** 采购退货单号 */
-  returnNos?: unknown[];
-}
+export type WdtPurchasePurchaseReturnBatchCancelOrderRequest = readonly [returnNos: unknown[]];
 
 export interface WdtPurchasePurchaseReturnBatchCancelOrderData extends WdtResponseData {
   /** 错误信息，如果没有错误信息返回空List */
@@ -7620,12 +8406,30 @@ export interface WdtPurchasePurchaseReturnBatchCancelOrderData extends WdtRespon
   status: number;
 }
 
-export interface WdtFinanceSettlePurchaseUploadRequest extends WdtRequestObject {
-  /** 单据信息 */
-  settleOrder: Record<string, unknown>;
-  /** 明细信息 */
-  detailList: unknown[];
+export interface WdtFinanceSettlePurchaseUploadRequestSettleOrder extends WdtRequestObject {
+  /** 采购单号 */
+  purchaseNo: string;
+  /** ERP内手动维护的物流公司编号 */
+  logisticsCompanyNo?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 发票类型 0：无发票 1：电子普通发票 2：纸质普通发票 3：电子增值税专用发票 4：纸质增值税专用发票 */
+  invoiceType?: number | string;
+  /** 发票号码 */
+  invoiceNo?: string;
+  /** 邮费 */
+  postFee?: number | string;
+  /** 其他费用 */
+  otherFee?: number | string;
+  /** 备注 */
+  remark?: string;
+  /** 默认false,审核失败情况下单据会创建失败 */
+  isCheck?: boolean;
+  /** 默认false,业务单号进行模糊查询匹配，匹配数量大于1条时会报错 */
+  fuzzyQuery?: boolean;
 }
+
+export type WdtFinanceSettlePurchaseUploadRequest = readonly [settleOrder: WdtFinanceSettlePurchaseUploadRequestSettleOrder, detailList: unknown[]];
 
 export interface WdtFinanceSettlePurchaseUploadData extends WdtResponseData {
   /** 结算单号 */
@@ -7650,10 +8454,7 @@ export interface WdtPurchasePurchaseOrderCancelByTypeData extends WdtResponseDat
   errorCount: number;
 }
 
-export interface WdtPurchasePurchaseApplyCancelForApiRequest extends WdtRequestObject {
-  /** 采购申请单号 */
-  applyList?: unknown[];
-}
+export type WdtPurchasePurchaseApplyCancelForApiRequest = readonly [applyList: unknown[]];
 
 export interface WdtPurchasePurchaseApplyCancelForApiData extends WdtResponseData {
   /** 采购申请单号 */
@@ -7664,10 +8465,7 @@ export interface WdtPurchasePurchaseApplyCancelForApiData extends WdtResponseDat
   errorCode?: number;
 }
 
-export interface WdtPurchasePurchaseApplyStopForApiRequest extends WdtRequestObject {
-  /** 采购申请单号 */
-  applyList?: unknown[];
-}
+export type WdtPurchasePurchaseApplyStopForApiRequest = readonly [applyList: unknown[]];
 
 export interface WdtPurchasePurchaseApplyStopForApiData extends WdtResponseData {
   /** 采购申请单号 */
@@ -7770,12 +8568,30 @@ export interface WdtPurchaseStockInPreOrderSearchData extends WdtResponseData {
   orderList: WdtPurchaseStockInPreOrderSearchOrderListItem[];
 }
 
-export interface WdtFinanceSettlePurchaseReturnUploadRequest extends WdtRequestObject {
-  /** 单据信息 */
-  settleOrder: Record<string, unknown>;
-  /** 明细信息 */
-  detailList: unknown[];
+export interface WdtFinanceSettlePurchaseReturnUploadRequestSettleOrder extends WdtRequestObject {
+  /** 采购退货单号 */
+  returnNo: string;
+  /** ERP内手动维护的物流公司编号 */
+  logisticsCompanyNo?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 发票类型 0：无发票 1：电子普通发票 2：纸质普通发票 3：电子增值税专用发票 4：纸质增值税专用发票 */
+  invoiceType?: number | string;
+  /** 发票号码 */
+  invoiceNo?: string;
+  /** 邮费 */
+  postFee?: number | string;
+  /** 其他费用 */
+  otherFee?: number | string;
+  /** 备注 */
+  remark?: string;
+  /** 默认false,审核失败情况下单据会创建失败 */
+  isCheck?: boolean;
+  /** 默认false,业务单号进行模糊查询匹配，匹配数量大于1条时会报错 */
+  fuzzyQuery?: boolean;
 }
+
+export type WdtFinanceSettlePurchaseReturnUploadRequest = readonly [settleOrder: WdtFinanceSettlePurchaseReturnUploadRequestSettleOrder, detailList: unknown[]];
 
 export interface WdtFinanceSettlePurchaseReturnUploadData extends WdtResponseData {
   /** 结算单号 */
@@ -8034,12 +8850,29 @@ export interface WdtWmsStockSpecSearchData extends WdtResponseData {
   cycleDays?: number;
 }
 
-export interface WdtWmsStockPdStockSyncByPdRequest extends WdtRequestObject {
-  /** 盘点单信息 */
-  pdOrder?: Record<string, unknown>;
-  /** 盘点单明细，可以为空 */
-  specList?: unknown[];
+export interface WdtWmsStockPdStockSyncByPdRequestPdOrder extends WdtRequestObject {
+  /** 仓库编号 */
+  warehouseNo?: string;
+  /** 正残次品处理方式: 0 全部 1 只盘正品 2 只盘残品 */
+  defectMode?: number | string;
+  /** 备注，若无可为”” */
+  remark?: string;
+  /** 0：非严格模式 1：严格模式（盘点单中某个单品不存在时会报错，单据创建失败） 默认0 */
+  isPostError?: boolean;
 }
+
+export interface WdtWmsStockPdStockSyncByPdRequestSpecList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 备注(盘点录入的备注) */
+  remark?: string;
+  /** 盘点数量（仅支持正数盘点） */
+  newNum?: string;
+  /** 是否为残次品 */
+  defect?: boolean;
+}
+
+export type WdtWmsStockPdStockSyncByPdRequest = readonly [pdOrder: WdtWmsStockPdStockSyncByPdRequestPdOrder, specList: WdtWmsStockPdStockSyncByPdRequestSpecList[]];
 
 export interface WdtWmsStockPdStockSyncByPdData extends WdtResponseData {
   /** 盘点单号 */
@@ -8048,10 +8881,72 @@ export interface WdtWmsStockPdStockSyncByPdData extends WdtResponseData {
   skipSpecNo?: string;
 }
 
-export interface WdtWmsStockinOtherCreateOtherOrderRequest extends WdtRequestObject {
-  /** 入库单单据信息 */
-  stockinOrder?: Record<string, unknown>;
+export interface WdtWmsStockinOtherCreateOtherOrderRequestStockinOrder extends WdtRequestObject {
+  /** 外部单号，创建到ERP后最为入库单号展示 */
+  outerNo?: string;
+  /** 当不传入业务单号的情况下，自动创建业务单并关联 */
+  srcOrderNo?: string;
+  /** 仓库编码 */
+  warehouseNo?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 物流编号（ERP系统物流编号） */
+  logisticsCode?: string;
+  /** 0：待审核 1：已审核 2：编辑中 默认0 */
+  isCheck?: number | string;
+  /** 入库原因（在ERP内要维护才可以推送成功） */
+  reason?: string;
+  /** 备注 */
+  remark?: string;
+  /** 业务单自定义属性1 */
+  prop1?: string;
+  /** 业务单自定义属性2 */
+  prop2?: string;
+  /** 业务单自定义属性3 */
+  prop3?: string;
+  /** 业务单自定义属性4 */
+  prop4?: string;
+  /** 业务单自定义属性5 */
+  prop5?: string;
+  /** 业务单自定义属性6 */
+  prop6?: string;
+  /** 货品详情 */
+  goodsList?: WdtWmsStockinOtherCreateOtherOrderRequestGoodsList[];
 }
+
+export interface WdtWmsStockinOtherCreateOtherOrderRequestGoodsList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 入库数量 */
+  num?: number | string;
+  /** 备注 */
+  remark?: string;
+  /** 批次号（ 如果传入系统内不存在的批次信息, 将自动创建此批次信息） */
+  batchNo?: string;
+  /** 货位编号 */
+  positionNo?: string;
+  /** 生产日期 */
+  productionDate?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 残次品 true：是false：否 */
+  defect?: boolean;
+  /** 不填取该货品在对应仓库下的实际成本或计划成本（以系统配置中的【系统运行成本价(实际成本)计算方式】为准） */
+  stockinPrice?: number | string;
+  /** 序列号（序列号个数要与入库数量保持一致） */
+  snList?: unknown[];
+  /** sn新列表 sn_list和sn_new_list当存在序列号的情况下 有一个必传，sn_list优先级最高 */
+  snNewList?: WdtWmsStockinOtherCreateOtherOrderRequestSnNewList[];
+}
+
+export interface WdtWmsStockinOtherCreateOtherOrderRequestSnNewList extends WdtRequestObject {
+  /** 序列号 */
+  snNo?: string;
+  /** 序列号集合码 */
+  snSuiteNo?: string;
+}
+
+export type WdtWmsStockinOtherCreateOtherOrderRequest = readonly [stockinOrder: WdtWmsStockinOtherCreateOtherOrderRequestStockinOrder];
 
 export interface WdtWmsStockinOtherCreateOtherOrderData extends WdtResponseData {
   /** 如果创建/修改成功message内容为入库单号,否则为错误信息 */
@@ -8616,10 +9511,65 @@ export interface WdtWmsStockSpecQueryAvailableStockData extends WdtResponseData 
   totalCount?: number;
 }
 
-export interface WdtWmsStockoutOtherCreateOtherRequest extends WdtRequestObject {
-  /** 出库单单据信息 */
-  stockoutOrder?: Record<string, unknown>;
+export interface WdtWmsStockoutOtherCreateOtherRequestStockoutOrder extends WdtRequestObject {
+  /** 外部单号（创建成功后作为系统出库单号） */
+  outerNo?: string;
+  /** 当不传入业务单号的情况下，自动创建业务单并关联 */
+  srcOrderNo?: string;
+  /** 仓库编号 */
+  warehouseNo?: string;
+  /** 物流编号（系统物流编号） */
+  logisticsCode?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 邮费 */
+  postFee?: number | string;
+  /** 0：待审核 1：已审核 2：未确认 默认0 */
+  isCheck?: number | string;
+  /** 出库原因（在ERP内要维护才能推送成功） */
+  reason?: string;
+  /** 备注 */
+  remark?: string;
+  /** 业务单自定义属性1 */
+  prop1?: string;
+  /** 业务单自定义属性2 */
+  prop2?: string;
+  /** 业务单自定义属性3 */
+  prop3?: string;
+  /** 业务单自定义属性4 */
+  prop4?: string;
+  /** 业务单自定义属性5 */
+  prop5?: string;
+  /** 业务单自定义属性6 */
+  prop6?: string;
+  /** 货品详情 */
+  goodsList?: WdtWmsStockoutOtherCreateOtherRequestGoodsList[];
 }
+
+export interface WdtWmsStockoutOtherCreateOtherRequestGoodsList extends WdtRequestObject {
+  /** 单品信息 */
+  specNo?: string;
+  /** 出库数量 */
+  num?: number | string;
+  /** 货位编号 */
+  positionNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 批次号 */
+  batchNo?: string;
+  /** 生产日期 */
+  productionDate?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 是：true 否：false */
+  defect?: boolean;
+  /** 0：不开启 1：开启 默认不开启 */
+  isEnableSn?: number | string;
+  /** 序列号列表，多个序列号用","分隔， 例如："xxx1,xxx2,xxx3"，开启序列号后序列号数量要与出库数量保持一致 */
+  snList?: string;
+}
+
+export type WdtWmsStockoutOtherCreateOtherRequest = readonly [stockoutOrder: WdtWmsStockoutOtherCreateOtherRequestStockoutOrder];
 
 export interface WdtWmsStockoutOtherCreateOtherData extends WdtResponseData {
   /** 如果创建/修改成功message内容为出库单号,否则为错误信息 */
@@ -8781,10 +9731,7 @@ export interface WdtWmsStockoutTransferQueryWithDetailData extends WdtResponseDa
   order?: WdtWmsStockoutTransferQueryWithDetailOrderItem[];
 }
 
-export interface WdtWmsStockinTransferCancelOrderRequest extends WdtRequestObject {
-  /** 调拨入库单号 */
-  transferInNo?: string;
-}
+export type WdtWmsStockinTransferCancelOrderRequest = readonly [transferInNo: string];
 
 export type WdtWmsStockinTransferCancelOrderData = WdtResponseData;
 
@@ -9002,28 +9949,53 @@ export interface WdtWmsStockPdQueryStockPdOutDetailData extends WdtResponseData 
   totalCount?: number;
 }
 
-export interface WdtWmsStockoutTransferCancelOrderRequest extends WdtRequestObject {
-  /** 调拨出库单号 */
-  transferOutNo?: string;
-}
+export type WdtWmsStockoutTransferCancelOrderRequest = readonly [transferOutNo: string];
 
 export type WdtWmsStockoutTransferCancelOrderData = WdtResponseData;
 
-export interface WdtWmsStocktransferManageCancelOrderRequest extends WdtRequestObject {
-  /** 调拨单号 */
-  transferNo?: string;
-}
+export type WdtWmsStocktransferManageCancelOrderRequest = readonly [transferNo: string];
 
 export type WdtWmsStocktransferManageCancelOrderData = WdtResponseData;
 
-export interface WdtWmsStockinTransferCreateOrderRequest extends WdtRequestObject {
-  /** 调拨入库单单据信息 */
-  orderInfo?: Record<string, unknown>;
-  /** 调拨入库单明细信息 */
-  detailList?: unknown[];
-  /** 是否审核（ 低优先级 ）V1.4.9.1版本以上非必传 */
-  isCheck?: boolean;
+export interface WdtWmsStockinTransferCreateOrderRequestOrderInfo extends WdtRequestObject {
+  /** 源调拨单号 */
+  srcOrderNo?: string;
+  /** 调入仓库编码 */
+  warehouseNo?: string;
+  /** 物流编号（系统物流编号） */
+  logisticsCode?: string;
+  /** 备注 */
+  remark?: string;
+  /** 0：待审核 1：已审核2：编辑中 默认0 */
+  isCheck?: number | string;
+  /** true：创建false： 不创建 默认不创建 */
+  isCreateBatch?: boolean;
 }
+
+export interface WdtWmsStockinTransferCreateOrderRequestDetailList extends WdtRequestObject {
+  /** 单品信息 */
+  specNo?: string;
+  /** 调拨数量 */
+  num?: number | string;
+  /** 基本单位，不传默认为调拨单明细对应货品的基本单位 */
+  unitName?: string;
+  /** 调入货位，不传默认取调拨单中设置的入库货位，如果有多个相同货品随机取一条明细填充信息 */
+  positionNo?: string;
+  /** 批次号，不传默认取调拨单中设置的批次号，如果有多个相同货品随机取一条明细填充信息 */
+  batchNo?: string;
+  /** 有效期，不传默认取调拨单中设置的有效期，如果有多个相同货品随机取一条明细填充信息 */
+  expireDate?: string;
+  /** true：残次品false：正品 */
+  defect?: boolean;
+  /** 备注 */
+  remark?: string;
+  /** 0：不开启 1：开启 默认不开启 */
+  isEnableSn?: number | string;
+  /** 序列号列表，多个序列号用","分隔， 例如："xxx1,xxx2,xxx3"，开启序列号后序列号数量要与出库数量保持一致 */
+  snList?: string;
+}
+
+export type WdtWmsStockinTransferCreateOrderRequest = readonly [orderInfo: WdtWmsStockinTransferCreateOrderRequestOrderInfo, detailList: WdtWmsStockinTransferCreateOrderRequestDetailList[], isCheck: boolean];
 
 export interface WdtWmsStockinTransferCreateOrderData extends WdtResponseData {
   /** 如果创建/修改成功message内容为单号,否则为错误信息 */
@@ -9032,14 +10004,43 @@ export interface WdtWmsStockinTransferCreateOrderData extends WdtResponseData {
   status?: number;
 }
 
-export interface WdtWmsStockoutTransferCreateOrderRequest extends WdtRequestObject {
-  /** 调拨出库单单据信息 */
-  orderInfo?: Record<string, unknown>;
-  /** 调拨出库单明细信息 */
-  detailList?: unknown[];
-  /** 是否审核（ 低优先级 ） */
-  isCheck?: boolean;
+export interface WdtWmsStockoutTransferCreateOrderRequestOrderInfo extends WdtRequestObject {
+  /** 源调拨单号 */
+  srcOrderNo?: string;
+  /** 调出仓库编号 */
+  warehouseNo?: string;
+  /** 物流编号（系统物流公司编号） */
+  logisticsCode?: string;
+  /** 备注 */
+  remark?: string;
+  /** 0：待审核 1：已审核 2：未确认 默认0 */
+  isCheck?: number | string;
 }
+
+export interface WdtWmsStockoutTransferCreateOrderRequestDetailList extends WdtRequestObject {
+  /** 单品信息 */
+  specNo?: string;
+  /** 调拨数量 */
+  num?: number | string;
+  /** 基本单位 */
+  unitName?: string;
+  /** 调出货位，不传取系统配置的默认货位 */
+  positionNo?: string;
+  /** 批次号，不传随机匹配调拨单中的批次信息 */
+  batchNo?: string;
+  /** 有效期，不传随机匹配调拨单中的有效期 */
+  expireDate?: string;
+  /** true：残次品 false：正品 */
+  defect?: boolean;
+  /** 备注 */
+  remark?: string;
+  /** 0：不开启 1：开启 默认不开启 */
+  isEnableSn?: number | string;
+  /** 序列号列表，多个序列号用","分隔， 例如："xxx1,xxx2,xxx3"，开启序列号后序列号数量要与出库数量保持一致 */
+  snList?: string;
+}
+
+export type WdtWmsStockoutTransferCreateOrderRequest = readonly [orderInfo: WdtWmsStockoutTransferCreateOrderRequestOrderInfo, detailList: WdtWmsStockoutTransferCreateOrderRequestDetailList[], isCheck: boolean];
 
 export interface WdtWmsStockoutTransferCreateOrderData extends WdtResponseData {
   /** 如果创建/修改成功message内容为单号,否则为错误信息 */
@@ -9048,14 +10049,53 @@ export interface WdtWmsStockoutTransferCreateOrderData extends WdtResponseData {
   status?: number;
 }
 
-export interface WdtWmsStocktransferEditCreateOrderRequest extends WdtRequestObject {
-  /** 调拨单单据信息 */
-  orderInfo?: Record<string, unknown>;
-  /** 调拨单明细信息 */
-  detailList?: unknown[];
-  /** 是否审核 审核：true 不审核：false */
-  isCheck?: boolean;
+export interface WdtWmsStocktransferEditCreateOrderRequestOrderInfo extends WdtRequestObject {
+  /** 调拨单号（支持不传，不传此参数按照旺店通系统单号生成逻辑在系统生成调拨单号信息） */
+  outerNo?: string;
+  /** 调出仓库 */
+  fromWarehouseNo?: string;
+  /** 调入仓库 */
+  toWarehouseNo?: string;
+  /** 调拨类型： 0：单品调拨 1：货位调拨2：明细调拨5：单品调拨(出+入)6：货位调拨(出+入)7：明细调拨(出+入)分步调拨使用类型：0,1,2；快速调拨使用类型：5,6,7 */
+  mode?: number | string;
+  /** 备注 */
+  remark?: string;
+  /** 目标仓联系人 */
+  contact?: string;
+  /** 联系电话 */
+  telno?: string;
+  /** 目标仓省份，不校验是否与系统地址库匹配 */
+  province?: string;
+  /** 目标仓城市，不校验是否与系统地址库匹配 */
+  city?: string;
+  /** 目标仓地区，不校验是否与系统地址库匹配 */
+  district?: string;
+  /** 目标仓地址，不校验是否与系统地址库匹配 */
+  address?: string;
+  /** 物流公司编号，设置-基本设置-物流界面查看 */
+  logisticsCompanyNo?: string;
 }
+
+export interface WdtWmsStocktransferEditCreateOrderRequestDetailList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 调拨数量，若调拨数量小于可用库存数量会提示报错 */
+  num?: number | string;
+  /** 调出货位 */
+  fromPositionNo?: string;
+  /** 调入货位 */
+  toPositionNo?: string;
+  /** 批次号，mode=2或者7，才有效 */
+  batchNo?: string;
+  /** 有效期，mode=2或者7，才有效 */
+  expireDate?: string;
+  /** 是否残次品残次品：true 正品：false */
+  defect?: boolean;
+  /** 备注 */
+  remark?: string;
+}
+
+export type WdtWmsStocktransferEditCreateOrderRequest = readonly [orderInfo: WdtWmsStocktransferEditCreateOrderRequestOrderInfo, detailList: WdtWmsStocktransferEditCreateOrderRequestDetailList[], isCheck: boolean];
 
 export interface WdtWmsStocktransferEditCreateOrderData extends WdtResponseData {
   /** 如果创建/修改成功message内容为调拨单号,否则为错误信息 */
@@ -9236,12 +10276,7 @@ export interface WdtWmsStocktransferManagePendingErrorInfoItem extends WdtRespon
   message: string;
 }
 
-export interface WdtWmsStocktransferManagePendingRequest extends WdtRequestObject {
-  /** 调拨单号 */
-  transferNos: unknown[];
-  /** 是否将已出库但未入库的数量进行入库 */
-  isback: boolean;
-}
+export type WdtWmsStocktransferManagePendingRequest = readonly [transferNos: unknown[], isback: boolean];
 
 export interface WdtWmsStocktransferManagePendingData extends WdtResponseData {
   /** 错误信息，如果没有错误信息返回空List */
@@ -9250,12 +10285,73 @@ export interface WdtWmsStocktransferManagePendingData extends WdtResponseData {
   status: number;
 }
 
-export interface WdtWmsStockotherOutPushRequest extends WdtRequestObject {
-  /** 单据数据 */
-  order: Record<string, unknown>;
-  /** 单据明细 */
-  orderDetails: unknown[];
+export interface WdtWmsStockotherOutPushRequestOrder extends WdtRequestObject {
+  /** 仓库编号 */
+  warehouseNo: string;
+  /** ERP系统内自行维护的物流公司的编号 */
+  logisticsCode?: string;
+  /** 出库原因 */
+  reason?: string;
+  /** 标记名称 */
+  flagName?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 收件人姓名（外部仓库必须传入该字段） */
+  receiverName?: string;
+  /** 收件人手机 （外部仓库必须传入该字段） */
+  receiverMobile?: string;
+  /** 省 （外部仓库必须传入该字段） */
+  receiverProvince?: string;
+  /** 市 （外部仓库必须传入该字段） */
+  receiverCity?: string;
+  /** 区 （外部仓库必须传入该字段） */
+  receiverDistrict?: string;
+  /** 地址 （外部仓库必须传入该字段） */
+  receiverAddress?: string;
+  /** 其它出库业务单属性1 */
+  prop1?: string;
+  /** 其它出库业务单属性2 */
+  prop2?: string;
+  /** 其它出库业务单属性3 */
+  prop3?: string;
+  /** 其它出库业务单属性4 */
+  prop4?: string;
+  /** 其它出库业务单属性5 */
+  prop5?: string;
+  /** 其它出库业务单属性6 */
+  prop6?: string;
+  /** 传入外部单号则使用外部单号作为系统内业务单号 */
+  outerNo?: string;
+  /** 审核传入true,不传默认false, 传入false则创建的业务单为待审核状态 */
+  isCheck?: boolean;
+  /** 0：创建单据时校验可用库存1：审核单据时校验可用库存默认1 */
+  createCheckStock?: number | string;
 }
+
+export interface WdtWmsStockotherOutPushRequestOrderDetails extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 数量 */
+  num: number | string;
+  /** 货位 */
+  positionNo?: string;
+  /** 批次 */
+  batchNo?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 生产日期 yyyy-MM-dd例： 2024-09-01 */
+  productionDate?: string;
+  /** 默认false */
+  defect?: boolean;
+  /** 基本单位取值：优先取单品，单品无则取货品基本单位，辅助单位需要和基本单位有匹配关系 */
+  auxUnitName?: string;
+  /** 备注 */
+  remark?: string;
+}
+
+export type WdtWmsStockotherOutPushRequest = readonly [order: WdtWmsStockotherOutPushRequestOrder, orderDetails: WdtWmsStockotherOutPushRequestOrderDetails[]];
 
 export interface WdtWmsStockotherOutPushData extends WdtResponseData {
   /** 0：表示操作全部成功 20：审核失败 */
@@ -9266,12 +10362,61 @@ export interface WdtWmsStockotherOutPushData extends WdtResponseData {
   outerNo: string;
 }
 
-export interface WdtWmsStockotherInPushRequest extends WdtRequestObject {
-  /** 单据数据 */
-  order: Record<string, unknown>;
-  /** 单据明细 */
-  orderDetails: unknown[];
+export interface WdtWmsStockotherInPushRequestOrder extends WdtRequestObject {
+  /** 仓库编号 */
+  warehouseNo: string;
+  /** ERP系统内自行维护的物流公司的编号 */
+  logisticsCode?: string;
+  /** 入库原因 */
+  reason?: string;
+  /** 标记名称 */
+  flagName?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 其他入库业务单属性1 */
+  prop1?: string;
+  /** 其他入库业务单属性2 */
+  prop2?: string;
+  /** 其他入库业务单属性3 */
+  prop3?: string;
+  /** 其他入库业务单属性4 */
+  prop4?: string;
+  /** 其他入库业务单属性5 */
+  prop5?: string;
+  /** 其他入库业务单属性6 */
+  prop6?: string;
+  /** 传入外部单号则使用外部单号作为系统内业务单号 */
+  outerNo?: string;
+  /** 审核传入true,不传默认false, 传入false则创建的业务单为待审核状态 */
+  isCheck?: boolean;
 }
+
+export interface WdtWmsStockotherInPushRequestOrderDetails extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 数量 */
+  num: number | string;
+  /** 货位 */
+  positionNo?: string;
+  /** 批次，支持传入并创建ERP内不存在的批次信息 */
+  batchNo?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 生产日期yyyy-MM-dd例： 2024-09-01 */
+  productionDate?: string;
+  /** 默认false */
+  defect?: boolean;
+  /** 基本单位取值：优先取单品，单品无则取货品基本单位，辅助单位需要和基本单位有匹配关系 */
+  auxUnitName?: string;
+  /** 备注 */
+  remark?: string;
+  /** 入库价 */
+  price?: number | string;
+}
+
+export type WdtWmsStockotherInPushRequest = readonly [order: WdtWmsStockotherInPushRequestOrder, orderDetails: WdtWmsStockotherInPushRequestOrderDetails[]];
 
 export interface WdtWmsStockotherInPushData extends WdtResponseData {
   /** 0：表示操作全部成功 20：审核失败 */
@@ -9551,14 +10696,43 @@ export interface WdtWmsStockinProcessQueryWithDetailData extends WdtResponseData
   totalCount?: number;
 }
 
-export interface WdtWmsOuterOuterOutCreateOrderRequest extends WdtRequestObject {
-  /** 单据数据 */
-  order: Record<string, unknown>;
-  /** 单据明细 */
-  orderDetails: unknown[];
-  /** 审核：true 不审核：false */
-  isCheck: boolean;
+export interface WdtWmsOuterOuterOutCreateOrderRequestOrder extends WdtRequestObject {
+  /** 仓库编号 */
+  warehouseNo: string;
+  /** 备注 */
+  remark?: string;
+  /** 传入外部单号则使用外部单号作为系统内业务单号 */
+  orderNo?: string;
+  /** 0:调整出库，2:调拨出库，14:采购退货出库 */
+  srcOrderType?: number | string;
+  /** 源单类型为2和14需传源单号 */
+  srcOrderNo?: string;
+  /** 出库原因 */
+  reason?: string;
 }
+
+export interface WdtWmsOuterOuterOutCreateOrderRequestOrderDetails extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 数量 */
+  num: number | string;
+  /** 辅助单位 */
+  auxUnitName?: string;
+  /** 备注 */
+  remark?: string;
+  /** 默认false */
+  defect?: boolean;
+  /** 批次编号若不在会自动创建 */
+  batchNo?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** 0：不开启 1：开启默认不开启 */
+  isEnableSn?: number | string;
+  /** 序列号列表，多个序列号用","分隔， 例如："xxx1,xxx2,xxx3"，开启序列号后序列号数量要与出库数量保持一致 */
+  snList?: string;
+}
+
+export type WdtWmsOuterOuterOutCreateOrderRequest = readonly [order: WdtWmsOuterOuterOutCreateOrderRequestOrder, orderDetails: WdtWmsOuterOuterOutCreateOrderRequestOrderDetails[], isCheck: boolean];
 
 export interface WdtWmsOuterOuterOutCreateOrderData extends WdtResponseData {
   /** 0：表示操作全部成功 20：审核失败 */
@@ -10323,10 +11497,7 @@ export interface WdtWmsStockoutSalesPickPickListOverviewForApiStockDetailListIte
   stockNum?: number;
 }
 
-export interface WdtWmsStockoutSalesPickPickListOverviewForApiRequest extends WdtRequestObject {
-  /** 波次单编号 */
-  pickNo: string;
-}
+export type WdtWmsStockoutSalesPickPickListOverviewForApiRequest = readonly [pickNo: string];
 
 export interface WdtWmsStockoutSalesPickPickListOverviewForApiData extends WdtResponseData {
   /** 拣货区通道长度 */
@@ -10507,12 +11678,41 @@ export interface WdtSettingStrategyVirtualWarehouseStockSearchData extends WdtRe
   totalCount: number;
 }
 
-export interface WdtSettingStrategyVirtualWarehouseCreateRequest extends WdtRequestObject {
-  /** 单据信息 */
-  orderMap: Record<string, unknown>;
-  /** 明细信息 */
-  detailList: unknown[];
+export interface WdtSettingStrategyVirtualWarehouseCreateRequestOrderMap extends WdtRequestObject {
+  /** 虚拟仓编号 */
+  virtualWarehouseNo: string;
+  /** 1:锁定分配,2:释放出库,3:虚拟仓间调拨,4:采购入库 默认值为1 */
+  orderType?: number | string;
+  /** order_type=3时必传 */
+  toVirtualWarehouseNo?: string;
+  /** 仅在order_type=3时生效 1：预设审核， 0：不审核 */
+  isPreCheck?: number | string;
+  /** 仅在order_type=3时生效，默认0 1：审核， 0：不审核 */
+  insufficientStockNotPreCheck?: number | string;
+  /** 仅在order_type=3时生效, 格式: yyyy-MM-dd HH:mm, 时间要大于当前服务器时间2分钟以上 */
+  preTime?: string;
+  /** 默认为空 */
+  remark?: string;
+  /** 1：审核， 0：不审核 默认0不审核 */
+  isCheck?: number | string;
 }
+
+export interface WdtSettingStrategyVirtualWarehouseCreateRequestDetailList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 实体仓编号 */
+  warehouseNo: string;
+  /** 入库数量，默认为1 */
+  num?: number | string;
+  /** 成本，默认为0 */
+  price?: number | string;
+  /** 采购在途数量，默认为0 */
+  purchaseNum?: number | string;
+  /** 自定义数量，默认为0 */
+  factoryNum?: number | string;
+}
+
+export type WdtSettingStrategyVirtualWarehouseCreateRequest = readonly [orderMap: WdtSettingStrategyVirtualWarehouseCreateRequestOrderMap, detailList: WdtSettingStrategyVirtualWarehouseCreateRequestDetailList[]];
 
 export interface WdtSettingStrategyVirtualWarehouseCreateData extends WdtResponseData {
   /** 如果创建成功message内容为单号，否则为错误信息 */
@@ -11050,12 +12250,26 @@ export interface WdtWmsGoodsSNQueryWithDetailData extends WdtResponseData {
   totalCount?: number;
 }
 
-export interface WdtFinanceSettleOtherInUploadRequest extends WdtRequestObject {
-  /** 单据信息 */
-  orderInfo: Record<string, unknown>;
-  /** 明细信息 */
-  detailList?: unknown[];
+export interface WdtFinanceSettleOtherInUploadRequestOrderInfo extends WdtRequestObject {
+  /** 其它入库业务单号 */
+  otherInNo: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** ERP内手动维护的物流公司编号 */
+  logisticsCompanyNo?: string;
+  /** 运费 */
+  postFee?: number | string;
+  /** 填写供应商的情况下会校验供应商权限 */
+  providerNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 默认false,审核失败情况下单据会创建失败 */
+  isCheck?: boolean;
+  /** 默认false,业务单号进行模糊查询匹配，匹配数量大于1条时会报错 */
+  fuzzyQuery?: boolean;
 }
+
+export type WdtFinanceSettleOtherInUploadRequest = readonly [orderInfo: WdtFinanceSettleOtherInUploadRequestOrderInfo, detailList: unknown[]];
 
 export interface WdtFinanceSettleOtherInUploadData extends WdtResponseData {
   /** 结算单号 */
@@ -11599,10 +12813,14 @@ export interface WdtWmsStockPdQueryStockPdDetailPdDetailListItem extends WdtResp
   defect: number;
 }
 
-export interface WdtWmsStockPdQueryStockPdDetailRequest extends WdtRequestObject {
-  /** 系统盘点单编号，默认PD开头 */
-  pdNo?: string;
+export interface WdtWmsStockPdQueryStockPdDetailRequestPager extends WdtRequestObject {
+  /** 分页大小 */
+  pageSize?: number | string;
+  /** 从0开始 */
+  pageNo?: number | string;
 }
+
+export type WdtWmsStockPdQueryStockPdDetailRequest = readonly [pdNo: Record<string, unknown>];
 
 export interface WdtWmsStockPdQueryStockPdDetailData extends WdtResponseData {
   /** 响应数据节点 */
@@ -12032,45 +13250,58 @@ export interface WdtWmsStockinBaseSearchSNData extends WdtResponseData {
   totalCount?: number;
 }
 
-export interface WdtWmsStockinBaseUploadSNRequest extends WdtRequestObject {
-  /** 入库单号 */
-  stockinNo?: string;
-  /** 2：调拨入库6：生产成品入库 20：其他入库 */
-  orderType?: number;
+export interface WdtWmsStockinBaseUploadSNRequestDetailList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 默认false */
+  defect?: boolean;
+  /** 批次编号 */
+  batchNo?: string;
+  /** 生产日期 */
+  productionDate?: string;
+  /** 有效期 */
+  expireDate?: string;
+  /** sn列表 */
+  snList?: unknown[];
+  /** sn新列表 sn_list和sn_new_list中有一个必传，同时传sn_list优先级高于sn_new_list */
+  snNewList?: WdtWmsStockinBaseUploadSNRequestSnNewList[];
 }
+
+export interface WdtWmsStockinBaseUploadSNRequestSnNewList extends WdtRequestObject {
+  /** 序列号 */
+  snNo?: string;
+  /** 序列号集合码 */
+  snSuiteNo?: string;
+}
+
+export type WdtWmsStockinBaseUploadSNRequest = readonly [stockinNo: Record<string, unknown>, orderType: unknown[]];
 
 export interface WdtWmsStockinBaseUploadSNData extends WdtResponseData {
   /** 此字段为方便后续响应内容调整所添加，不可以作为接口响应成功的标志 */
   message?: string;
 }
 
-export interface WdtWmsStockoutBaseUploadSNRequest extends WdtRequestObject {
-  /** 出库单号 */
-  stockoutNo?: string;
-  /** 2：调拨出库5：生产原料出库 14：采购退货出库21：其他出库 */
-  orderType?: number;
+export interface WdtWmsStockoutBaseUploadSNRequestDetailList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo?: string;
+  /** 默认false */
+  defect?: boolean;
+  /** sn列表 */
+  snList?: unknown[];
 }
+
+export type WdtWmsStockoutBaseUploadSNRequest = readonly [stockoutNo: Record<string, unknown>, orderType: unknown[]];
 
 export interface WdtWmsStockoutBaseUploadSNData extends WdtResponseData {
   /** 此字段为方便后续响应内容调整所添加，不可以作为接口响应成功的标志 */
   message?: string;
 }
 
-export interface WdtWmsStockinOtherCancelOtherOrderRequest extends WdtRequestObject {
-  /** 入库单号 */
-  orderNo?: string;
-  /** false:仅可以取消编辑中状态 true:待审核的单据会先返回编辑然后再取消 */
-  isForce?: boolean;
-}
+export type WdtWmsStockinOtherCancelOtherOrderRequest = readonly [orderNo: string, isForce: boolean];
 
 export type WdtWmsStockinOtherCancelOtherOrderData = WdtResponseData;
 
-export interface WdtWmsStockoutOtherCancelOtherOrderRequest extends WdtRequestObject {
-  /** 出库单号 */
-  orderNo?: string;
-  /** false:仅可以取未确认状态 true:待审核的单据会先返回编辑然后再取消 */
-  isForce?: boolean;
-}
+export type WdtWmsStockoutOtherCancelOtherOrderRequest = readonly [orderNo: string, isForce: boolean];
 
 export type WdtWmsStockoutOtherCancelOtherOrderData = WdtResponseData;
 
@@ -12135,10 +13366,7 @@ export interface WdtWmsStockotherInCancelOrderErrorDataItem extends WdtResponseD
   errMsg?: string;
 }
 
-export interface WdtWmsStockotherInCancelOrderRequest extends WdtRequestObject {
-  /** 业务单号 */
-  orderNoList?: unknown[];
-}
+export type WdtWmsStockotherInCancelOrderRequest = readonly [orderNoList: unknown[]];
 
 export interface WdtWmsStockotherInCancelOrderData extends WdtResponseData {
   /** 取消成功的单号 */
@@ -12154,10 +13382,7 @@ export interface WdtWmsStockotherOutCancelOrderErrorDataItem extends WdtResponse
   errMsg?: string;
 }
 
-export interface WdtWmsStockotherOutCancelOrderRequest extends WdtRequestObject {
-  /** 业务单号 */
-  orderNoList?: unknown[];
-}
+export type WdtWmsStockotherOutCancelOrderRequest = readonly [orderNoList: unknown[]];
 
 export interface WdtWmsStockotherOutCancelOrderData extends WdtResponseData {
   /** 取消成功的单号 */
@@ -12187,12 +13412,27 @@ export interface WdtSettingStrategyVirtualWarehouseStrategyAllocationCreateReque
 
 export type WdtSettingStrategyVirtualWarehouseStrategyAllocationCreateData = WdtResponseData;
 
-export interface WdtSettingStrategyVirtualWarehouseReserveExtractAddRequest extends WdtRequestObject {
-  /** 策略信息 */
-  orderInfo?: Record<string, unknown>;
-  /** 策略明细信息 */
-  detail?: unknown[];
+export interface WdtSettingStrategyVirtualWarehouseReserveExtractAddRequestOrderInfo extends WdtRequestObject {
+  /** 单号 */
+  orderNo?: number | string;
+  /** 单据类型 2：调拨单 4：盘点单 14：采购退货 21：其他出库业务单 */
+  orderType?: number | string;
 }
+
+export interface WdtSettingStrategyVirtualWarehouseReserveExtractAddRequestDetail extends WdtRequestObject {
+  /** 平台规格编码，不传默认为空 */
+  specNo?: string;
+  /** 虚拟仓编码 */
+  virWarehouseNo?: string;
+  /** 入库虚拟仓 */
+  toVirwarehouseNo?: string;
+  /** 释放优先级 */
+  priority?: number | string;
+  /** 出库数量 */
+  num?: number | string;
+}
+
+export type WdtSettingStrategyVirtualWarehouseReserveExtractAddRequest = readonly [orderInfo: WdtSettingStrategyVirtualWarehouseReserveExtractAddRequestOrderInfo, detail: WdtSettingStrategyVirtualWarehouseReserveExtractAddRequestDetail[]];
 
 export type WdtSettingStrategyVirtualWarehouseReserveExtractAddData = WdtResponseData;
 
@@ -12730,12 +13970,62 @@ export interface WdtWmsStockinRefundQueryWithDetailData extends WdtResponseData 
   summaryData?: WdtWmsStockinRefundQueryWithDetailSummaryDataItem[];
 }
 
-export interface WdtAftersalesRefundRawRefundUploadRequest extends WdtRequestObject {
-  /** 店铺编号 */
-  shopNo: string;
-  /** 原始退款单列表 */
-  orderList: unknown[];
+export interface WdtAftersalesRefundRawRefundUploadRequestOrderList extends WdtRequestObject {
+  /** 原始退款单号 */
+  refundNo?: string;
+  /** 货品数量 */
+  num?: number | string;
+  /** 原始单号 */
+  tid?: string;
+  /** 原始子单号 */
+  oid?: string;
+  /** 0取消订单1退款(未发货，退款申请)2退货3换货4退款不退货当type=3时原始退款单递交 不会 生成系统退货单 */
+  type?: number | string;
+  /** 1取消退款,2已申请退款,3等待退货,4等待收货,5退款成功 */
+  status?: number | string;
+  /** 退款版本，默认传1即可 */
+  refundVersion?: string;
+  /** 申请退款金额 */
+  refundAmount?: number | string;
+  /** 实际退款金额 */
+  actualRefundAmount?: number | string;
+  /** 标题，对应原始退款单页面主单货品字段,若无传空字符串 */
+  title?: string;
+  /** 物流公司名称（支持自定义推送）， 若无传空字符串 */
+  logisticsName?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 客户网名 */
+  buyerNick?: string;
+  /** 退款创建时间 */
+  refundTime?: string;
+  /** 退款成功时间 */
+  currentPhaseTimeout?: string;
+  /** 是否售后退款单 */
+  isAftersale?: number | string;
+  /** 退款原因 */
+  reason?: string;
+  /** 单价 */
+  price?: number | string;
+  /** 买家支付帐号 */
+  payAccount?: string;
+  /** 支付订单号 */
+  payNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 退款货品总价 */
+  totalAmount?: number | string;
+  /** 平台规格编号 */
+  specNo?: string;
+  /** 平台规格id */
+  specId?: string;
+  /** 平台货品编号 */
+  goodsNo?: string;
+  /** 平台货品id */
+  goodsId?: string;
 }
+
+export type WdtAftersalesRefundRawRefundUploadRequest = readonly [shopNo: string, orderList: WdtAftersalesRefundRawRefundUploadRequestOrderList[]];
 
 export interface WdtAftersalesRefundRawRefundUploadData extends WdtResponseData {
   /** 执行成功，返回更新订单的数量 */
@@ -12744,12 +14034,41 @@ export interface WdtAftersalesRefundRawRefundUploadData extends WdtResponseData 
   newCount?: number;
 }
 
-export interface WdtWmsStockinPreStockinCreateExtRequest extends WdtRequestObject {
-  /** 入库单信息 */
-  stockinOrder: Record<string, unknown>;
-  /** 入库单明细，不能为为空 */
-  specList: unknown[];
+export interface WdtWmsStockinPreStockinCreateExtRequestStockinOrder extends WdtRequestObject {
+  /** 仓库编号（不支持外部仓储） */
+  warehouseNo: string;
+  /** 入库单号 */
+  stockinNo: string;
+  /** 备注，若无可为”” */
+  remark: string;
+  /** 寄回物流单号 */
+  logisticsNo?: string;
+  /** 自定义属性1 */
+  prop1?: string;
+  /** 自定义属性2 */
+  prop2?: string;
+  /** 客户网名 */
+  customerNickname?: string;
+  /** 客户姓名 */
+  customerName?: string;
+  /** 客户手机号 */
+  customerPhone?: string;
+  /** 入库标记 */
+  flagName?: string;
 }
+
+export interface WdtWmsStockinPreStockinCreateExtRequestSpecList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 备注 */
+  remark: string;
+  /** 入库数量 */
+  num: number | string;
+  /** 是否为残次品 */
+  defect: boolean;
+}
+
+export type WdtWmsStockinPreStockinCreateExtRequest = readonly [stockinOrder: WdtWmsStockinPreStockinCreateExtRequestStockinOrder, specList: WdtWmsStockinPreStockinCreateExtRequestSpecList[]];
 
 export type WdtWmsStockinPreStockinCreateExtData = WdtResponseData;
 
@@ -13725,12 +15044,64 @@ export interface WdtAftersalesRefundRawRefundUpload2ErrorListItem extends WdtRes
   error?: string;
 }
 
-export interface WdtAftersalesRefundRawRefundUpload2Request extends WdtRequestObject {
-  /** 店铺编号 */
-  shopNo: string;
-  /** 原始退款单列表 */
-  orderList: unknown[];
+export interface WdtAftersalesRefundRawRefundUpload2RequestOrderList extends WdtRequestObject {
+  /** 原始退款单号 */
+  refundNo?: string;
+  /** 货品数量 */
+  num?: number | string;
+  /** 原始单号 */
+  tid?: string;
+  /** 原始子单号 */
+  oid?: string;
+  /** 0取消订单1退款(未发货，退款申请)2退货3换货4退款不退货 当type=3时原始退款单递交不会生成系统退货单 */
+  type?: number | string;
+  /** 1取消退款,2已申请退款,3等待退货,4等待收货,5退款成功 */
+  status?: number | string;
+  /** 退款版本，默认传1即可 */
+  refundVersion?: string;
+  /** 申请退款金额 */
+  refundAmount?: number | string;
+  /** 实际退款金额 */
+  actualRefundAmount?: number | string;
+  /** 标题，对应原始退款单页面主单货品字段， 若无传空字符串 */
+  title?: string;
+  /** 物流公司名称（支持自定义推送）， 若无传空字符串 */
+  logisticsName?: string;
+  /** 物流单号， 若无传空字符串 */
+  logisticsNo?: string;
+  /** 客户网名 */
+  buyerNick?: string;
+  /** 退款创建时间 */
+  refundTime?: string;
+  /** 退款成功时间 */
+  currentPhaseTimeout?: string;
+  /** 是 否售后退款单 0：否1：是 */
+  isAftersale?: number | string;
+  /** 退款原因 */
+  reason?: string;
+  /** 单价 */
+  price?: number | string;
+  /** 买家支付帐号 */
+  payAccount?: string;
+  /** 支付订单号 */
+  payNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 退款货品总价 */
+  totalAmount?: number | string;
+  /** 平台规格编号 */
+  specNo?: string;
+  /** 平台规格id */
+  specId?: string;
+  /** 平台货品编号 */
+  goodsNo?: string;
+  /** 平台货品id */
+  goodsId?: string;
+  /** 1:新订单 2:状态变化 4:金额变化 */
+  modifyFlag?: number | string;
 }
+
+export type WdtAftersalesRefundRawRefundUpload2Request = readonly [shopNo: string, orderList: WdtAftersalesRefundRawRefundUpload2RequestOrderList[]];
 
 export interface WdtAftersalesRefundRawRefundUpload2Data extends WdtResponseData {
   /** 执行成功，返回更新订单的数量 */
@@ -13741,21 +15112,52 @@ export interface WdtAftersalesRefundRawRefundUpload2Data extends WdtResponseData
   errorList?: WdtAftersalesRefundRawRefundUpload2ErrorListItem[];
 }
 
-export interface WdtWmsStockinRefundCreateOrderRequest extends WdtRequestObject {
-  /** 入库单据信息 */
-  stockinOrder: Record<string, unknown>;
+export interface WdtWmsStockinRefundCreateOrderRequestStockinOrder extends WdtRequestObject {
+  /** 退换单号 */
+  refundNo: string;
+  /** 外部单号 */
+  outStockinNo?: string;
+  /** 仓库编号（不支持传入多个仓库编号） */
+  warehouseNo: string;
+  /** 系统物流公司编号 */
+  logisticsCode?: string;
+  /** 物流单号 */
+  logisticsNo?: string;
+  /** 备注 */
+  remark?: string;
+  /** 默认0 0：编辑中 1：已提交 2：已审核 */
+  createMode?: number | string;
+  /** true：创建 false：不创建 默认不创建 */
+  isCreateBatch?: boolean;
+  /** 明细信息 */
+  detailList: unknown[];
 }
+
+export type WdtWmsStockinRefundCreateOrderRequest = readonly [stockinOrder: WdtWmsStockinRefundCreateOrderRequestStockinOrder];
 
 export type WdtWmsStockinRefundCreateOrderData = WdtResponseData;
 
-export interface WdtWmsStockinSmartRefundUploadRequest extends WdtRequestObject {
-  /** 退货信息 */
-  refundInfo: Record<string, unknown>;
-  /** 退货货品详细信息 */
-  detailMapList: unknown[];
-  /** 是否允许退货货品数量大于购买数量 */
-  createPreStockin: boolean;
+export interface WdtWmsStockinSmartRefundUploadRequestRefundInfo extends WdtRequestObject {
+  /** 原始单号 */
+  tid: string;
+  /** 退货入库仓编号（不支持外部仓库） */
+  returnWarehouseNo: string;
+  /** 退货备注,无备注可以传空字符串 */
+  remark: string;
+  /** 退货物流单号 */
+  returnLogisticsNo?: string;
 }
+
+export interface WdtWmsStockinSmartRefundUploadRequestDetailMapList extends WdtRequestObject {
+  /** 商家编码 */
+  specNo: string;
+  /** 入库数量 */
+  stockinNum: number | string;
+  /** 备注,无备注可以传空字符串 */
+  remark: string;
+}
+
+export type WdtWmsStockinSmartRefundUploadRequest = readonly [refundInfo: WdtWmsStockinSmartRefundUploadRequestRefundInfo, detailMapList: WdtWmsStockinSmartRefundUploadRequestDetailMapList[], createPreStockin: boolean];
 
 export interface WdtWmsStockinSmartRefundUploadData extends WdtResponseData {
   /** 入库单id */

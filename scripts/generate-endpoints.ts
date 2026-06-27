@@ -23,6 +23,8 @@ interface FieldMeta {
 
 interface EndpointSchema {
   requestFields: FieldMeta[];
+  requestChildTables: Map<string, FieldMeta[]>;
+  requestExample: unknown;
   dataFields: FieldMeta[];
   childTables: Map<string, FieldMeta[]>;
 }
@@ -137,14 +139,22 @@ function parseEndpointSchema(source: string): EndpointSchema {
     requestTables.get("detail_list") ??
     requestTables.get("details") ??
     tableWithoutTransportFields(requestTables.get("__root") ?? []);
+  const requestChildTables = new Map(requestTables);
+  const requestExample = inferRequestExample(tokens);
   const rootDataFields = responseTables.get("data") ?? inferDataFieldsFromResponseExample(tokens);
   const childTables = new Map(responseTables);
 
+  requestChildTables.delete("__root");
+  requestChildTables.delete("params");
+  requestChildTables.delete("detail_list");
+  requestChildTables.delete("details");
   childTables.delete("__root");
   childTables.delete("data");
 
   return {
     requestFields: sanitizeFields(requestFields),
+    requestChildTables,
+    requestExample,
     dataFields: sanitizeFields(rootDataFields),
     childTables,
   };
@@ -331,6 +341,97 @@ function inferDataFieldsFromResponseExample(tokens: DocToken[]): FieldMeta[] {
   }
 }
 
+function inferRequestExample(tokens: DocToken[]): unknown {
+  const requestExampleIndex = findTextIndex(tokens, /^5\.\s*请求示例/);
+  if (requestExampleIndex < 0) {
+    return undefined;
+  }
+
+  for (let index = requestExampleIndex + 1; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.kind === "text" && /^6\./.test(token.text)) {
+      break;
+    }
+    if (token.kind !== "table") {
+      continue;
+    }
+
+    for (const row of token.rows) {
+      const jsonCellIndex = row.findIndex((cell) => /json/i.test(cell));
+      const jsonText = row.slice(Math.max(jsonCellIndex + 1, 0)).find((cell) => /[[{]/.test(cell));
+      if (!jsonText) {
+        continue;
+      }
+
+      const parsed = parseJsonSnippet(jsonText);
+      if (parsed !== undefined) {
+        return parsed;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function parseJsonSnippet(text: string): unknown {
+  const normalized = text.replace(/\u00a0/g, " ").trim();
+  const start = normalized.search(/[[{]/);
+  if (start < 0) {
+    return undefined;
+  }
+
+  const snippet = readBalancedJson(normalized.slice(start));
+  if (!snippet) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(snippet);
+  } catch {
+    return undefined;
+  }
+}
+
+function readBalancedJson(text: string): string | undefined {
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === "{" || char === "[") {
+      stack.push(char === "{" ? "}" : "]");
+      continue;
+    }
+    if (char === "}" || char === "]") {
+      if (stack.pop() !== char) {
+        return undefined;
+      }
+      if (stack.length === 0) {
+        return text.slice(0, index + 1);
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function inferDocType(value: unknown): string {
   if (Array.isArray(value)) {
     return "List";
@@ -357,9 +458,13 @@ function renderEndpointTypes(method: string, schema: EndpointSchema | undefined)
   const dataType = `${baseName}Data`;
 
   const requestFields = schema?.requestFields ?? [];
+  const requestChildTables = schema?.requestChildTables ?? new Map<string, FieldMeta[]>();
+  const requestExample = schema?.requestExample;
   const dataFields = schema?.dataFields ?? [];
   const childTables = schema?.childTables ?? new Map<string, FieldMeta[]>();
   const shapes = new Map<string, TypeShape>();
+  const isTupleRequest = isRequestTuple(requestFields, requestExample);
+  const requestShapes = isTupleRequest ? buildRequestShapes(baseName, requestChildTables) : new Map<string, TypeShape>();
 
   for (const [tableName, childFields] of childTables) {
     if (childFields.length > 0) {
@@ -373,11 +478,15 @@ function renderEndpointTypes(method: string, schema: EndpointSchema | undefined)
   for (const shape of shapes.values()) {
     declarations.push(renderInterface(shape.name, shape.fields, shapes));
   }
+  for (const shape of requestShapes.values()) {
+    declarations.push(renderInterface(shape.name, shape.fields, requestShapes, "WdtRequestObject", renderRequestFieldTsType));
+  }
 
   declarations.push(
-    requestFields.length > 0
-      ? renderInterface(requestType, requestFields, new Map(), "WdtRequestObject")
-      : `export type ${requestType} = WdtRequestBody;`,
+    renderRequestDeclaration(requestType, requestFields, requestShapes, requestExample) ??
+      (requestFields.length > 0
+        ? renderInterface(requestType, requestFields, new Map(), "WdtRequestObject")
+        : `export type ${requestType} = WdtRequestBody;`),
   );
   declarations.push(
     dataFields.length > 0
@@ -388,17 +497,92 @@ function renderEndpointTypes(method: string, schema: EndpointSchema | undefined)
   return { requestType, dataType, declarations };
 }
 
+function isRequestTuple(requestFields: FieldMeta[], requestExample: unknown): requestExample is unknown[] {
+  return Array.isArray(requestExample) && requestFields.length > 0 && requestExample.length === requestFields.length;
+}
+
+function buildRequestShapes(baseName: string, requestChildTables: Map<string, FieldMeta[]>): Map<string, TypeShape> {
+  const requestShapes = new Map<string, TypeShape>();
+
+  for (const [tableName, childFields] of requestChildTables) {
+    if (childFields.length > 0) {
+      requestShapes.set(tableName, {
+        name: `${baseName}Request${toPascalCase(tableName)}`,
+        fields: sanitizeFields(childFields),
+      });
+    }
+  }
+
+  return requestShapes;
+}
+
+function renderRequestDeclaration(
+  requestType: string,
+  requestFields: FieldMeta[],
+  requestShapes: Map<string, TypeShape>,
+  requestExample: unknown,
+): string | undefined {
+  if (!isRequestTuple(requestFields, requestExample)) {
+    return undefined;
+  }
+
+  const tupleItems = requestFields.map((field, index) => {
+    const label = toCamelCase(field.name);
+    const type = renderRequestTupleItemType(field, requestShapes.get(field.name)?.name, requestExample[index]);
+    return /^[A-Za-z_$][\w$]*$/.test(label) ? `${label}: ${type}` : type;
+  });
+
+  return `export type ${requestType} = readonly [${tupleItems.join(", ")}];`;
+}
+
+function renderRequestTupleItemType(field: FieldMeta, childTypeName: string | undefined, exampleValue: unknown): string {
+  if (childTypeName) {
+    return Array.isArray(exampleValue) ? `${childTypeName}[]` : childTypeName;
+  }
+  if (Array.isArray(exampleValue)) {
+    return "unknown[]";
+  }
+  if (exampleValue && typeof exampleValue === "object") {
+    return "Record<string, unknown>";
+  }
+  return renderTsType(field, undefined);
+}
+
+function renderRequestFieldTsType(field: FieldMeta, childTypeName: string | undefined): string {
+  const docType = field.type.toLowerCase().replace(/\s+/g, "");
+  if (childTypeName) {
+    return /list|array/.test(docType) ? `${childTypeName}[]` : childTypeName;
+  }
+  if (/list|array|\[\]/.test(docType)) {
+    return "unknown[]";
+  }
+  if (/bool/.test(docType)) {
+    return "boolean";
+  }
+  if (/int|long|float|double|decimal|number|byte|金额|价格|数量/.test(docType)) {
+    return "number | string";
+  }
+  if (/map|object|json/.test(docType)) {
+    return "Record<string, unknown>";
+  }
+  if (/date|time|string|char|text|varchar/.test(docType)) {
+    return "string";
+  }
+  return "unknown";
+}
+
 function renderInterface(
   name: string,
   fields: FieldMeta[],
   childShapes: Map<string, TypeShape>,
   baseType = "WdtResponseData",
+  typeRenderer = renderTsType,
 ): string {
   const lines = fields.map((field) => {
     const propertyName = toCamelCase(field.name);
     const optional = field.required ? "" : "?";
     const doc = field.description ? `  /** ${escapeComment(field.description)} */\n` : "";
-    const type = renderTsType(field, childShapes.get(field.name)?.name);
+    const type = typeRenderer(field, childShapes.get(field.name)?.name);
     return `${doc}  ${quotePropertyIfNeeded(propertyName)}${optional}: ${type};`;
   });
 
